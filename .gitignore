@@ -1,0 +1,12 @@
+# Artefacto temporal del visualizador (se regenera; el HTML final es autocontenido)
+conclave-data.json
+
+# Temporales / scripts de trabajo
+_*.mjs
+*.tmp
+
+# SO / editor
+Thumbs.db
+.DS_Store
+.vscode/
+node_modules/

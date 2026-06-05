@@ -1,0 +1,11 @@
+{
+  "name": "conclave-marketplace",
+  "owner": { "name": "dyubero" },
+  "plugins": [
+    {
+      "name": "conclave",
+      "source": "./",
+      "description": "Debate multi-agente hasta consenso para decidir dilemas difíciles, con visualizador HTML (--ui)."
+    }
+  ]
+}

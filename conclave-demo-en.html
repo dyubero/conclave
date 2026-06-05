@@ -1,0 +1,586 @@
+﻿<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cónclave · deliberación</title>
+    <style>
+      :root {
+        --ink: #0e0b07; --bg: #15110b; --bg-2: #1b150d; --vellum: #efe2c8;
+        --surface: #211a10; --surface-2: #2a2113; --line: #4a3c25; --line-soft: #382c1b;
+        --text: #ece0c8; --muted: #b7a684; --faint: #8a7a5c;
+        --gold: #e8b35a; --gold-bright: #f7d99a; --gold-deep: #b98a36;
+        --ox: #c2566a; --ox-deep: #8f3344; --good: #8fce86; --warn: #e8b35a; --spec: #e08aa3;
+        --p0: #e8b35a; --p1: #6db6a6; --p2: #b58cd6; --p3: #e0855c; --p4: #9bbf7a;
+        --shadow: 0 18px 50px -22px rgba(0, 0, 0, 0.85);
+        --display: "Cochin", "Hoefler Text", "Baskerville Old Face", "Baskerville", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+        --body: "Iowan Old Style", "Palatino Linotype", "Palatino", "Book Antiqua", Georgia, "Times New Roman", serif;
+        --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, "SF Mono", monospace;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0; color: var(--text); font-family: var(--body); line-height: 1.6; font-size: 17px;
+        background: radial-gradient(120% 90% at 50% -10%, rgba(232,179,90,.14), transparent 55%), radial-gradient(80% 60% at 50% 120%, rgba(143,51,68,.08), transparent 60%), linear-gradient(180deg, var(--bg), var(--ink));
+        background-attachment: fixed; min-height: 100vh; overflow-x: hidden;
+      }
+      body::before { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .05; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+      body::after { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(120% 100% at 50% 30%, transparent 55%, rgba(0,0,0,.55) 100%); }
+      .glow { position: fixed; top: -240px; left: 50%; width: 760px; height: 600px; transform: translateX(-50%); background: radial-gradient(closest-side, rgba(247,217,154,.16), transparent 72%); z-index: 0; pointer-events: none; animation: flicker 6s ease-in-out infinite; }
+      @keyframes flicker { 0%,100%{opacity:.85;} 45%{opacity:1;} 55%{opacity:.78;} 70%{opacity:.95;} }
+      .page { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 0 22px 140px; }
+      ::selection { background: rgba(232,179,90,.28); }
+
+      .masthead { text-align: center; padding: 58px 0 26px; }
+      .crest { font-size: 30px; letter-spacing: 6px; color: var(--gold); filter: drop-shadow(0 0 18px rgba(232,179,90,.5)); }
+      .masthead h1 { font-family: var(--display); font-weight: 600; font-size: clamp(42px, 8vw, 78px); margin: 6px 0 2px; letter-spacing: 2px; color: var(--vellum); line-height: 1; text-shadow: 0 2px 30px rgba(232,179,90,.22); }
+      .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold-deep); }
+      .rule { width: 180px; height: 1px; margin: 20px auto; background: linear-gradient(90deg, transparent, var(--gold-deep), transparent); position: relative; }
+      .rule::after { content: "✦"; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); color: var(--gold); background: var(--bg); padding: 0 10px; font-size: 13px; }
+      .question { font-family: var(--display); font-style: italic; font-size: clamp(20px, 3.4vw, 30px); line-height: 1.32; max-width: 760px; margin: 0 auto; color: var(--text); padding: 0 10px; }
+      .question .q { color: var(--gold-deep); font-size: 1.5em; vertical-align: -0.28em; }
+      .meta-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; margin: 26px 0 8px; }
+      .pill { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: var(--muted); border: 1px solid var(--line-soft); background: rgba(0,0,0,.2); padding: 5px 12px; border-radius: 2px; }
+      .pill b { color: var(--gold-bright); font-weight: 600; }
+      .tension { max-width: 420px; margin: 22px auto 0; }
+      .tension .lab { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--faint); margin-bottom: 6px; }
+      .tension .track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--good), var(--warn) 55%, var(--ox)); position: relative; box-shadow: inset 0 0 6px rgba(0,0,0,.5); }
+      .tension .mark { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; background: var(--vellum); border: 2px solid var(--ink); transform: translate(-50%, -50%); box-shadow: 0 0 12px rgba(247,217,154,.7); transition: left 1.1s cubic-bezier(.2,.8,.2,1); }
+
+      .toolbar { position: sticky; top: 0; z-index: 30; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 30px 0 28px; padding: 12px 16px; border: 1px solid var(--line-soft); border-radius: 4px; background: linear-gradient(180deg, rgba(33,26,16,.92), rgba(20,16,10,.92)); backdrop-filter: blur(10px); box-shadow: var(--shadow); }
+      .ctrl { font: inherit; font-size: 13px; color: var(--text); background: var(--surface-2); border: 1px solid var(--line); padding: 7px 12px; border-radius: 3px; cursor: pointer; transition: all .16s ease; letter-spacing: .3px; white-space: nowrap; }
+      .ctrl:hover { border-color: var(--gold); color: var(--gold-bright); transform: translateY(-1px); }
+      .ctrl.is-on { background: rgba(232,179,90,.16); border-color: var(--gold); color: var(--gold-bright); }
+      .scrub { flex: 1 1 200px; display: flex; align-items: center; gap: 10px; min-width: 160px; }
+      .scrub .count { font-family: var(--mono); font-size: 11px; color: var(--faint); white-space: nowrap; }
+      input[type="range"].seek { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--gold-deep) var(--fill, 100%), var(--line-soft) var(--fill, 100%)); cursor: pointer; }
+      input[type="range"].seek::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold-deep)); border: 1px solid var(--ink); box-shadow: 0 0 10px rgba(232,179,90,.6); }
+      input[type="range"].seek::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--gold); border: 1px solid var(--ink); }
+      .beads { display: flex; gap: 7px; } .bead { width: 11px; height: 11px; border-radius: 50%; border: 1px solid var(--gold-deep); background: transparent; cursor: pointer; padding: 0; transition: all .16s; }
+      .bead:hover, .bead.active { background: var(--gold); box-shadow: 0 0 8px rgba(232,179,90,.7); }
+      .sp { flex: 1; }
+
+      .shell { display: grid; grid-template-columns: 286px 1fr; gap: 30px; align-items: start; }
+      .council { position: sticky; top: 92px; display: flex; flex-direction: column; gap: 12px; }
+      .council h2, .thread .sec { font-family: var(--mono); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+      .member { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--line-soft); border-radius: 5px; background: linear-gradient(160deg, var(--surface), var(--bg-2)); cursor: pointer; transition: all .18s ease; position: relative; overflow: hidden; }
+      .member::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--c); opacity: .8; }
+      .member:hover { border-color: var(--c); transform: translateX(2px); }
+      .member.sel { border-color: var(--c); box-shadow: 0 0 0 1px var(--c) inset; }
+      .member .sigil { width: 48px; height: 48px; filter: drop-shadow(0 0 8px rgba(0,0,0,.5)); }
+      .member.pulse .sigil { animation: seal-pulse 1.1s ease; }
+      @keyframes seal-pulse { 0%{transform:scale(1);} 30%{transform:scale(1.14) rotate(6deg); filter:drop-shadow(0 0 16px var(--c));} 100%{transform:scale(1);} }
+      .member .nm { font-family: var(--display); font-size: 19px; color: var(--vellum); line-height: 1.1; }
+      .member .st { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+      .member .real { font-family: var(--mono); font-size: 10.5px; letter-spacing: .5px; color: var(--gold-deep); margin-top: 6px; }
+      .member .real b { color: var(--gold-bright); filter: blur(4.5px); transition: filter .4s ease; }
+      body.unmasked .member .real b { filter: none; }
+      .legend { font-size: 11px; color: var(--faint); border: 1px dashed var(--line-soft); border-radius: 5px; padding: 10px 12px; line-height: 1.9; }
+      .legend .dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: 1px; }
+
+      .thread { min-width: 0; position: relative; }
+      .thread::before { content: ""; position: absolute; left: 25px; top: 38px; bottom: 60px; width: 1px; background: linear-gradient(180deg, transparent, var(--line-soft) 8%, var(--line-soft) 92%, transparent); }
+      .round-mark { display: flex; align-items: center; gap: 14px; margin: 30px 0 16px; position: relative; }
+      .round-mark .orb { width: 52px; height: 52px; flex: none; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-size: 20px; color: var(--gold-bright); background: radial-gradient(circle at 40% 35%, var(--surface-2), var(--ink)); border: 1px solid var(--gold-deep); box-shadow: 0 0 18px rgba(232,179,90,.18), var(--shadow); z-index: 1; }
+      .round-mark .rt { font-family: var(--display); font-size: 23px; color: var(--vellum); }
+      .round-mark .rt small { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--faint); }
+      .round-sum { margin: -6px 0 16px 66px; font-family: var(--mono); font-size: 11px; letter-spacing: .4px; color: var(--faint); display: flex; gap: 14px; flex-wrap: wrap; }
+      .round-sum span { white-space: nowrap; }
+
+      .entry { margin: 0 0 16px 66px; position: relative; }
+      .step { transition: opacity .45s ease, filter .45s ease; }
+      .step.veiled { opacity: .07; filter: blur(1.5px) grayscale(.6); pointer-events: none; }
+      .step.cursor > * { box-shadow: 0 0 0 1px var(--gold), var(--shadow) !important; }
+      body.has-focus .entry:not(.is-focus) .card { opacity: .26; filter: saturate(.35); }
+      .card { border: 1px solid var(--line-soft); border-radius: 6px; padding: 16px 18px; background: linear-gradient(165deg, var(--surface), var(--bg-2)); box-shadow: var(--shadow); position: relative; }
+      .stmt .card { border-left: 3px solid var(--c); }
+      .head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 9px; }
+      .head .mini { width: 26px; height: 26px; flex: none; }
+      .head .who { font-family: var(--display); font-size: 19px; color: var(--c); line-height: 1; }
+      .head .tags { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+      .tag { font-family: var(--mono); font-size: 10px; letter-spacing: .5px; color: var(--muted); border: 1px solid var(--line-soft); border-radius: 999px; padding: 2px 8px; }
+      .tag.chg { color: var(--gold-bright); border-color: var(--gold-deep); }
+      .conf { display: inline-flex; align-items: center; gap: 5px; }
+      .conf .bar { width: 34px; height: 4px; border-radius: 2px; background: var(--line-soft); overflow: hidden; }
+      .conf .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-deep), var(--gold)); }
+      .stance { font-family: var(--display); font-size: 18.5px; line-height: 1.42; color: var(--vellum); }
+      .reason { color: var(--muted); font-size: 15px; margin-top: 8px; }
+      .kp { list-style: none; padding: 0; margin: 12px 0 4px; display: flex; flex-direction: column; gap: 5px; }
+      .kp li { font-size: 14px; color: var(--text); display: flex; gap: 8px; align-items: baseline; }
+      .kp .st-pill { font-family: var(--mono); font-size: 9px; letter-spacing: .5px; text-transform: uppercase; padding: 1px 6px; border-radius: 2px; border: 1px solid; flex: none; }
+      .st-fact { color: var(--good); border-color: rgba(143,206,134,.45); }
+      .st-infer { color: var(--warn); border-color: rgba(232,179,90,.45); }
+      .st-spec { color: var(--spec); border-color: rgba(224,138,163,.45); }
+      body.ev-hecho .kp li:not(.k-fact), body.ev-inferencia .kp li:not(.k-infer), body.ev-especulación .kp li:not(.k-spec) { opacity: .22; }
+      .aside { margin-top: 12px; border-left: 2px solid var(--line); padding: 4px 0 4px 12px; font-size: 13.5px; color: var(--faint); font-style: italic; }
+      .aside b { font-style: normal; font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold-deep); display: block; margin-bottom: 2px; }
+      .sources { margin-top: 12px; font-size: 12.5px; color: var(--muted); }
+      .sources .s { display: block; margin-top: 3px; }
+      .sources code { font-family: var(--mono); font-size: 11px; color: var(--gold-bright); background: rgba(232,179,90,.08); padding: 1px 5px; border-radius: 2px; }
+      .resp { margin-top: 12px; display: flex; flex-direction: column; gap: 7px; }
+      .resp .r { border: 1px solid var(--line-soft); border-radius: 5px; padding: 8px 11px; font-size: 13.5px; }
+      .resp .r .hd { font-family: var(--mono); font-size: 11px; letter-spacing: .5px; }
+      .resp .r.agree .hd { color: var(--good); } .resp .r.partial .hd { color: var(--warn); } .resp .r.disagree .hd { color: var(--spec); }
+      .resp .r .steel { color: var(--faint); font-style: italic; margin-top: 3px; display: block; }
+
+      /* markdown ligero */
+      .rich > :first-child { margin-top: 0; } .rich > :last-child { margin-bottom: 0; }
+      .rich p { margin: 0 0 .7em; }
+      .rich ul, .rich ol { margin: .5em 0; padding-left: 1.4em; } .rich li { margin: .25em 0; }
+      .rich strong { color: var(--vellum); font-weight: 700; } .rich em { font-style: italic; }
+      .rich code { font-family: var(--mono); font-size: .9em; background: rgba(232,179,90,.09); color: var(--gold-bright); padding: 1px 5px; border-radius: 3px; }
+      .rich .md-h { font-weight: 700; color: var(--gold-bright); margin: .7em 0 .3em; }
+      .rich blockquote { margin: .5em 0; padding: 2px 0 2px 12px; border-left: 2px solid var(--line); color: var(--muted); }
+      .rich table { border-collapse: collapse; margin: .7em 0; font-size: .92em; width: 100%; }
+      .rich th, .rich td { border: 1px solid var(--line-soft); padding: 5px 10px; text-align: left; vertical-align: top; }
+      .rich th { color: var(--gold-bright); background: rgba(232,179,90,.07); font-weight: 700; }
+
+      /* plegado */
+      .detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .4s ease; }
+      .detail > .inner { overflow: hidden; min-height: 0; }
+      .entry.open .detail { grid-template-rows: 1fr; }
+      .morebtn { margin-top: 11px; background: none; border: none; color: var(--gold-deep); font-family: var(--mono); font-size: 11px; letter-spacing: .8px; cursor: pointer; padding: 2px 0; transition: color .15s; }
+      .morebtn:hover { color: var(--gold-bright); }
+      .morebtn::after { content: " ▾"; } .entry.open .morebtn::after { content: " ▴"; }
+
+      .redteam .card { border: 1px solid rgba(194,86,106,.4); background: linear-gradient(165deg, rgba(143,51,68,.16), var(--bg-2)); border-left: 3px solid var(--ox); }
+      .redteam .who { color: var(--ox); }
+      .redteam .tgt { font-size: 12px; color: var(--faint); font-family: var(--mono); letter-spacing: .3px; }
+      .redteam .obj { font-family: var(--display); font-size: 17px; color: var(--vellum); margin-top: 5px; line-height: 1.4; }
+      .redteam .fm { color: var(--muted); font-size: 14px; margin-top: 7px; }
+      .mediator .card { border: 1px solid rgba(232,179,90,.38); background: linear-gradient(165deg, rgba(185,138,54,.13), var(--bg-2)); border-left: 3px solid var(--gold); }
+      .mediator .who { color: var(--gold-bright); }
+      .lab2 { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--faint); margin: 11px 0 4px; }
+      .cruxlist { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14px; }
+      .badge { font-family: var(--mono); font-size: 10px; letter-spacing: .5px; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; border: 1px solid; }
+      .b-good { color: var(--good); border-color: rgba(143,206,134,.5); background: rgba(143,206,134,.08); }
+      .b-warn { color: var(--warn); border-color: rgba(232,179,90,.5); background: rgba(232,179,90,.08); }
+      .b-bad { color: var(--spec); border-color: rgba(224,138,163,.5); background: rgba(224,138,163,.08); }
+      .ratify .card { border-color: var(--gold-deep); }
+      .ratify .stmt2 { font-family: var(--display); font-style: italic; font-size: 17px; color: var(--vellum); margin: 4px 0 14px; }
+      .votes { display: flex; flex-direction: column; gap: 8px; }
+      .vote { display: flex; gap: 11px; align-items: baseline; font-size: 14.5px; }
+      .vote .mk { font-family: var(--mono); font-weight: 700; flex: none; } .vote.y .mk { color: var(--good); } .vote.n .mk { color: var(--spec); }
+
+      .verdict { margin-top: 54px; }
+      .verdict .frame { border: 1px solid var(--gold-deep); border-radius: 8px; padding: 40px 38px; background: radial-gradient(130% 120% at 50% -10%, rgba(232,179,90,.1), transparent 60%), linear-gradient(170deg, var(--surface), var(--ink)); box-shadow: 0 0 70px -30px rgba(232,179,90,.5), var(--shadow); text-align: center; }
+      .verdict .seal { width: 96px; height: 96px; margin: -78px auto 14px; }
+      .verdict .vk { font-family: var(--mono); letter-spacing: 5px; text-transform: uppercase; font-size: 11px; color: var(--gold-deep); }
+      .verdict h2 { font-family: var(--display); font-size: 32px; color: var(--gold-bright); margin: 4px 0 14px; }
+      .verdict .statement { font-family: var(--display); font-size: clamp(20px, 3vw, 26px); font-style: italic; line-height: 1.4; color: var(--vellum); max-width: 720px; margin: 0 auto 8px; }
+      .verdict .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; text-align: left; margin-top: 26px; }
+      .verdict .col h3 { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--faint); border-bottom: 1px solid var(--line-soft); padding-bottom: 6px; margin: 0 0 8px; }
+      .verdict ul { margin: 0; padding-left: 18px; } .verdict li { margin: 5px 0; font-size: 14.5px; color: var(--text); }
+      .verdict .col.dis li { color: var(--spec); }
+      .verdict .note { margin-top: 24px; font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--line-soft); padding-top: 16px; font-style: italic; }
+      .seal-disc { border-radius: 50%; display: grid; place-items: center; position: relative; background: radial-gradient(circle at 36% 30%, color-mix(in srgb, var(--sc) 55%, #fff 10%), var(--sc) 70%, color-mix(in srgb, var(--sc) 60%, #000 40%)); box-shadow: inset 0 -6px 14px rgba(0,0,0,.45), inset 0 4px 10px rgba(255,255,255,.18), 0 10px 22px -8px rgba(0,0,0,.7); }
+      .seal-disc::before { content: ""; position: absolute; inset: 7%; border-radius: 50%; border: 1.5px dashed rgba(0,0,0,.3); }
+      .seal-disc svg { width: 54%; height: 54%; opacity: .85; }
+      .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px); z-index: 50; background: linear-gradient(180deg, var(--surface-2), var(--ink)); border: 1px solid var(--gold-deep); color: var(--gold-bright); font-family: var(--display); font-style: italic; font-size: 16px; padding: 12px 22px; border-radius: 4px; box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: all .5s ease; }
+      .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+      .placeholder { text-align: center; padding: 120px 20px; color: var(--muted); font-style: italic; }
+      @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+      .anim { opacity: 0; animation: rise .7s cubic-bezier(.2,.8,.2,1) forwards; }
+      @media (max-width: 920px) {
+        .shell { grid-template-columns: 1fr; } .council { position: static; flex-direction: row; flex-wrap: wrap; }
+        .council h2 { width: 100%; } .member { flex: 1 1 220px; } .legend { flex: 1 1 100%; }
+        .thread::before { left: 18px; } .entry { margin-left: 46px; } .round-mark .orb { width: 40px; height: 40px; } .verdict .grid { grid-template-columns: 1fr; }
+      }
+      @media (prefers-reduced-motion: reduce) { .glow, .member.pulse .sigil { animation: none; } .anim { animation: none; opacity: 1; } html { scroll-behavior: auto; } .detail { transition: none; } }
+    </style>
+  </head>
+  <body>
+    <div class="glow"></div>
+    <div class="page" id="app"></div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+      const DATA = {
+  "question": "Should humanity prioritize colonizing Mars or fixing Earth first?",
+  "status": "majority_with_dissent",
+  "verdict": "Earth and Mars are **not a strict trade-off**: a modest, research-focused Mars program is justified, but framing it as a *'backup planet'* that licenses neglecting Earth is indefensible.",
+  "rationale": "Two of three converged on *both, but Earth-first in resources*; **Vega-1 dissents** that any sizable Mars spend is premature while Earth-system risks are unpriced.",
+  "agreements": ["The 'backup planet' framing is misleading on near-term timescales", "Earth life-support is irreplaceable this century", "Mars R&D has real spillover value"],
+  "cruxes": [{"issue": "How much budget is 'modest'?", "positions": [{"model": "Nimbus-LM", "view": "a few percent of R&D"}, {"model": "Vega-1", "view": "near zero until Earth risks are priced"}]}],
+  "dissent": [{"model": "Vega-1", "view": "Earth-first, near-zero Mars", "why": "opportunity cost is unacceptable while climate and biosecurity risks are unpriced"}],
+  "confidence_note": "**Solid** agreement on framing; a genuine, well-reasoned split on budget magnitude.",
+  "consensus_ratified": false,
+  "rounds_used": 3, "agents": 3, "mode": "seeded", "grounded": true, "realModel": "Opus 4.8", "lang": "en",
+  "participants": [
+    {"idx":0,"fictionalName":"Atlas-3","trueModel":"Opus 4.8","style":"rigorous formalist: reasons from precise definitions and principles"},
+    {"idx":1,"fictionalName":"Nimbus-LM","trueModel":"Opus 4.8","style":"lateral and creative: reframes and seeks third options"},
+    {"idx":2,"fictionalName":"Vega-1","trueModel":"Opus 4.8","style":"adversarial skeptic: hunts assumptions and failure modes"}
+  ],
+  "transcript": [
+    [
+      {"idx":0,"name":"Atlas-3","output":{"stance":"Define the claim first: **'colonize Mars'** and **'fix Earth'** are not mutually exclusive budget lines.","reasoning":"They compete only under a *fixed-pie* assumption that nobody has justified.\n\nNote also that **'colonize' is underspecified**: an orbital outpost, a research base, and a self-sustaining city are wildly different commitments.","key_points":[{"point":"Mars and Earth spending are not zero-sum a priori","status":"inferencia"},{"point":"'Colonize' is underspecified","status":"hecho"}],"strongest_counterview":"In practice, political attention IS scarce even if money isn't.","responses_to_others":[],"changed_position":false,"confidence":0.7}},
+      {"idx":1,"name":"Nimbus-LM","output":{"stance":"Reframe: it isn't Mars **or** Earth — it's what each *uniquely* buys us.","reasoning":"Two different goods on two different clocks:\n\n- **Mars** hedges long-tail extinction risk (slow clock);\n- **Earth** work addresses near-certain near-term harm (fast clock).\n\nAnd there is spillover: closed-loop life support built for Mars helps Earth too.","key_points":[{"point":"Different time horizons, different risks","status":"inferencia"},{"point":"Closed-loop life support has Earth spillover","status":"hecho"}],"strongest_counterview":"A hedge you can't afford to build in time is not a hedge.","responses_to_others":[],"changed_position":false,"confidence":0.68}},
+      {"idx":2,"name":"Vega-1","output":{"stance":"The dominant failure mode is **opportunity cost**: every dollar to Mars is a dollar not pricing Earth-system risk.","reasoning":"*'Backup planet'* rhetoric morally licenses neglecting the only biosphere we have — and no self-sustaining Mars colony is feasible this century.","key_points":[{"point":"No self-sustaining Mars colony this century","status":"inferencia"},{"point":"Climate and biosecurity risks are underfunded","status":"hecho"}],"strongest_counterview":"Some Mars spending is tiny and yields outsized scientific spillover.","responses_to_others":[],"changed_position":false,"confidence":0.8}}
+    ],
+    [
+      {"idx":1,"name":"Nimbus-LM","output":{"stance":"Propose the bridge: **Earth-first in resources, Mars-first in research** — a small, capped exploration budget.","reasoning":"This captures the hedge and the spillover **without** the moral hazard Vega-1 fears, because the cap is explicit and auditable.","key_points":[{"point":"Capped R&D budget avoids opportunity-cost blowup","status":"inferencia"}],"strongest_counterview":"Caps erode; mission creep is real.","responses_to_others":[{"model":"Vega-1","steelman":"Their strongest point: 'backup planet' rhetoric really does enable neglect.","agreement":"partial","note":"agreed on the rhetoric; disagree the right number is zero"}],"changed_position":true,"confidence":0.74}},
+      {"idx":0,"name":"Atlas-3","output":{"stance":"I accept the **capped-research** framing; it satisfies my non-zero-sum premise with a concrete bound.","reasoning":"A bounded program is decidable and auditable, unlike open-ended *'colonization'*.","key_points":[{"point":"Bounded program is auditable","status":"inferencia"}],"strongest_counterview":"A bound chosen arbitrarily is just postponed conflict over the number.","responses_to_others":[{"model":"Nimbus-LM","steelman":"The third way dissolves the false binary cleanly.","agreement":"agree","note":"accept the bridge"}],"changed_position":true,"confidence":0.78}}
+    ],
+    [
+      {"idx":2,"name":"Vega-1","output":{"stance":"I accept the framing but **not the magnitude**: until Earth risks are priced, the right Mars budget is near zero.","reasoning":"Compare what each magnitude actually buys:\n\n| Mars budget | Hedge value | Opportunity cost |\n|---|---|---|\n| Near zero | Low | **Minimal** |\n| A few percent | Modest | Real, unpriced |\n| Large | Speculative | **Severe** |\n\nWithout a binding **risk-pricing mechanism**, any cap is political fiction that drifts upward.","key_points":[{"point":"Caps drift without an enforcement mechanism","status":"especulación"},{"point":"Earth risks remain unpriced","status":"hecho"}],"strongest_counterview":"If spillover is real and large, near-zero forgoes genuine value.","responses_to_others":[{"model":"Nimbus-LM","steelman":"Capped R&D is reasonable IF the cap binds.","agreement":"partial","note":"I object to the magnitude, not the structure"}],"changed_position":false,"confidence":0.72}}
+    ]
+  ],
+  "redteams": [
+    {"round":2,"output":{"target_position":"Mars as humanity's backup plan justifies major investment now","strongest_objection":"**No credible engineering path** yields a self-sustaining Mars settlement this century, so the 'backup' cannot pay out on the relevant timescale.","failure_mode":"Spending on a hedge that cannot mature before the risks it hedges materialize.","severity":"alta","unanswered":true}},
+    {"round":3,"output":{"target_position":"A small capped Mars research budget is the right compromise","strongest_objection":"Budget caps without an enforcement mechanism predictably **drift upward** via mission creep.","failure_mode":"A 'modest' program quietly becoming a large one without a new decision.","severity":"media","unanswered":false}}
+  ],
+  "mediations": [
+    {"round":2,"output":{"consensus_reached":false,"status":"no_consensus","consensus_statement":null,"points_of_agreement":["The 'backup planet' framing is misleading near-term"],"open_cruxes":[{"issue":"Is the right Mars budget small-positive or near-zero?","positions":[{"model":"Nimbus-LM","view":"small positive"},{"model":"Vega-1","view":"near zero"}]}],"dissent":[],"redteam_addressed":false,"confidence_note":"Converging on framing; magnitude still open.","guidance_next_round":"Pin down the **budget magnitude** and whether any cap can actually bind.","rationale":"Agreement on structure, not on the number."}},
+    {"round":3,"output":{"consensus_reached":true,"status":"full_consensus","consensus_statement":"**Earth-first in resources, Mars-first in research**: a small, capped, research-focused Mars program — not a 'backup planet' that licenses neglecting Earth.","points_of_agreement":["The 'backup planet' framing is misleading near-term","Mars R&D has spillover value","A bounded program is auditable"],"open_cruxes":[{"issue":"What budget magnitude counts as 'small'?","positions":[{"model":"Nimbus-LM","view":"a few percent"},{"model":"Vega-1","view":"near zero"}]}],"dissent":[],"redteam_addressed":true,"confidence_note":"Strong on framing; the magnitude split persists.","guidance_next_round":"","rationale":"Two converge on capped research; the cap-drift objection was addressed via an enforcement mechanism. Proceed to ratification."}}
+  ],
+  "ratification": {
+    "round": 3,
+    "statement": "Earth-first in resources, Mars-first in research: a small, capped, research-focused Mars program — not a 'backup planet' that licenses neglecting Earth.",
+    "votes": [
+      {"name":"Atlas-3","output":{"ratifies":true,"objection":"","confidence":0.8}},
+      {"name":"Nimbus-LM","output":{"ratifies":true,"objection":"","confidence":0.77}},
+      {"name":"Vega-1","output":{"ratifies":false,"objection":"I cannot ratify 'a few percent' as 'small'; without a binding risk-pricing mechanism the right figure is near zero.","confidence":0.7}}
+    ]
+  }
+}
+;
+      const PCV = ["var(--p0)", "var(--p1)", "var(--p2)", "var(--p3)", "var(--p4)"];
+      const PCRAW = ["#e8b35a", "#6db6a6", "#b58cd6", "#e0855c", "#9bbf7a"];
+      const app = document.getElementById("app");
+      const toastEl = document.getElementById("toast");
+
+      const LANGS = {
+        es: { title: "Cónclave", kicker: "deliberación a puerta cerrada", council: "El consejo", minutes: "Actas del debate",
+          round: "Ronda", opening: "apertura", rebuttal: "réplica", redteam: "Equipo rojo", moderator: "Mediador",
+          targets: "Ataca:", failmode: "Modo de fallo:", severity: "severidad", unanswered: "sin respuesta", addressed: "respondido", pending: "pendiente",
+          guidance: "Guía para la siguiente ronda", confread: "Lectura de confianza", cruxesOpen: "Cruces abiertos",
+          selfcrit: "Autocrítica", steelman: "Steelman", sources: "Fuentes", conf: "conf", changed: "↻ cambió", believesOnly: "se cree el único · ",
+          verdict: "Veredicto", rulingRat: "fallo ratificado", ruling: "fallo del cónclave", agreements: "Acuerdos", cruxes: "Cruces", dissent: "Disidencia",
+          confidence: "Confianza", reasoning: "Razonamiento", ratification: "Ratificación", ratifies: "ratifica", objects: "objeta",
+          play: "▶ Reproducir", pause: "⏸ Pausa", evidence: "◐ Evidencia", unmask: "🜔 Desvelar", mask: "🜔 Velar", expandAll: "⤢ Expandir", collapseAll: "⤡ Colapsar",
+          more: "ver más", less: "ver menos", convergence: "convergencia", divergence: "divergencia", withSources: "🔎 con fuentes", ratified: "✓ ratificado",
+          model: "modelo", voices: "voces", rounds: "rondas", mode: "modo", changes: "cambios de postura", ruling2: "Dictamen de la ronda", flow: "Cada ronda: las voces debaten → 🜂 el equipo rojo ataca → ⚖ el mediador dictamina; al cierre, ratificación.", veil: "El velo cae: todas las voces eran ", noData: "Plantilla sin datos. Genera el HTML con: node conclave-render.mjs <data.json> <salida.html>", err: "Error al renderizar: ",
+          status: { full_consensus: "Consenso pleno", majority_with_dissent: "Mayoría con disidencia", no_consensus: "Sin consenso" },
+          ev: { hecho: "hecho", inferencia: "inferencia", "especulación": "especulación" }, sev: { alta: "alta", media: "media", baja: "baja" }, agr: { agree: "de acuerdo", disagree: "en contra", partial: "parcial" } },
+        en: { title: "Conclave", kicker: "deliberation behind closed doors", council: "The council", minutes: "Minutes of the debate",
+          round: "Round", opening: "opening", rebuttal: "rebuttal", redteam: "Red team", moderator: "Moderator",
+          targets: "Targets:", failmode: "Failure mode:", severity: "severity", unanswered: "unanswered", addressed: "addressed", pending: "pending",
+          guidance: "Guidance for next round", confread: "Confidence read", cruxesOpen: "Open cruxes",
+          selfcrit: "Self-critique", steelman: "Steelman", sources: "Sources", conf: "conf", changed: "↻ changed", believesOnly: "believes it is the only one · ",
+          verdict: "Verdict", rulingRat: "ratified ruling", ruling: "the conclave's ruling", agreements: "Agreements", cruxes: "Cruxes", dissent: "Dissent",
+          confidence: "Confidence", reasoning: "Reasoning", ratification: "Ratification", ratifies: "ratifies", objects: "objects",
+          play: "▶ Play", pause: "⏸ Pause", evidence: "◐ Evidence", unmask: "🜔 Unmask", mask: "🜔 Mask", expandAll: "⤢ Expand", collapseAll: "⤡ Collapse",
+          more: "show more", less: "show less", convergence: "convergence", divergence: "divergence", withSources: "🔎 sourced", ratified: "✓ ratified",
+          model: "model", voices: "voices", rounds: "rounds", mode: "mode", changes: "position changes", ruling2: "Round ruling", flow: "Each round: the voices debate → 🜂 the red team attacks → ⚖ the moderator rules; at the close, ratification.", veil: "The veil falls: every voice was ", noData: "Template without data. Generate the HTML with: node conclave-render.mjs <data.json> <out.html>", err: "Render error: ",
+          status: { full_consensus: "Full consensus", majority_with_dissent: "Majority with dissent", no_consensus: "No consensus" },
+          ev: { hecho: "fact", inferencia: "inference", "especulación": "speculation" }, sev: { alta: "high", media: "medium", baja: "low" }, agr: { agree: "agrees", disagree: "disagrees", partial: "partial" } },
+      };
+      const LANG = ((DATA && DATA.lang) || "es").slice(0, 2).toLowerCase();
+      const L = LANGS[LANG] || LANGS.en;
+
+      function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+      function svgBox(markup, cls) { const d = el("div", cls); d.innerHTML = markup; return d; }
+
+      // --- markdown ligero y SEGURO (el texto del modelo nunca va por innerHTML) ---
+      function inline(s) {
+        const frag = document.createDocumentFragment();
+        s = String(s == null ? "" : s);
+        const re = /(`[^`]+`)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(_[^_\n]+_)/g;
+        let last = 0, m;
+        while ((m = re.exec(s))) {
+          if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+          const t = m[0];
+          if (t[0] === "`") { const c = el("code"); c.textContent = t.slice(1, -1); frag.appendChild(c); }
+          else if (t.startsWith("**")) { const b = el("strong"); b.textContent = t.slice(2, -2); frag.appendChild(b); }
+          else { const e = el("em"); e.textContent = t.slice(1, -1); frag.appendChild(e); }
+          last = re.lastIndex;
+        }
+        if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+        return frag;
+      }
+      function mdLite(src) {
+        const frag = document.createDocumentFragment();
+        const lines = String(src == null ? "" : src).replace(/\r\n?/g, "\n").split("\n");
+        const isSep = (s) => /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/.test(s);
+        const cells = (s) => { let t = s.trim(); if (t.startsWith("|")) t = t.slice(1); if (t.endsWith("|")) t = t.slice(0, -1); return t.split("|").map((c) => c.trim()); };
+        const isUL = (s) => /^\s*[-*•]\s+/.test(s), isOL = (s) => /^\s*\d+[.)]\s+/.test(s);
+        let i = 0;
+        while (i < lines.length) {
+          const line = lines[i];
+          if (!line.trim()) { i++; continue; }
+          if (line.includes("|") && i + 1 < lines.length && isSep(lines[i + 1])) {
+            const header = cells(line); i += 2; const body = [];
+            while (i < lines.length && lines[i].trim() && lines[i].includes("|")) { body.push(cells(lines[i])); i++; }
+            const table = el("table"), thead = el("thead"), trh = el("tr");
+            header.forEach((c) => { const th = el("th"); th.appendChild(inline(c)); trh.appendChild(th); });
+            thead.appendChild(trh); table.appendChild(thead);
+            const tb = el("tbody");
+            body.forEach((r) => { const tr = el("tr"); header.forEach((_, j) => { const td = el("td"); td.appendChild(inline(r[j] || "")); tr.appendChild(td); }); tb.appendChild(tr); });
+            table.appendChild(tb); frag.appendChild(table); continue;
+          }
+          if (isUL(line) || isOL(line)) {
+            const ordered = isOL(line); const list = el(ordered ? "ol" : "ul");
+            while (i < lines.length && (ordered ? isOL(lines[i]) : isUL(lines[i]))) {
+              const li = el("li"); li.appendChild(inline(lines[i].replace(ordered ? /^\s*\d+[.)]\s+/ : /^\s*[-*•]\s+/, ""))); list.appendChild(li); i++;
+            }
+            frag.appendChild(list); continue;
+          }
+          const hm = line.match(/^\s*#{1,6}\s+(.*)$/);
+          if (hm) { const h = el("p", "md-h"); h.appendChild(inline(hm[1])); frag.appendChild(h); i++; continue; }
+          if (/^\s*>\s?/.test(line)) {
+            const buf = []; while (i < lines.length && /^\s*>\s?/.test(lines[i])) { buf.push(lines[i].replace(/^\s*>\s?/, "")); i++; }
+            const bq = el("blockquote"); bq.appendChild(mdLite(buf.join("\n"))); frag.appendChild(bq); continue;
+          }
+          const buf = [];
+          while (i < lines.length && lines[i].trim() && !isUL(lines[i]) && !isOL(lines[i]) && !/^\s*>\s?/.test(lines[i]) && !/^\s*#{1,6}\s+/.test(lines[i]) && !(lines[i].includes("|") && i + 1 < lines.length && isSep(lines[i + 1]))) { buf.push(lines[i]); i++; }
+          const p = el("p"); buf.forEach((b, idx) => { if (idx) p.appendChild(document.createElement("br")); p.appendChild(inline(b)); }); frag.appendChild(p);
+        }
+        return frag;
+      }
+      function rich(tag, cls, text) { const e = el(tag, (cls ? cls + " " : "") + "rich"); if (text != null && text !== "") { try { e.appendChild(mdLite(text)); } catch (err) { e.textContent = String(text); } } return e; }
+      const pc = (i) => PCV[i % PCV.length];
+      const praw = (i) => PCRAW[i % PCRAW.length];
+      function hashStr(s) { let h = 2166136261; s = String(s || ""); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+      function gcd(a, b) { while (b) { const t = b; b = a % b; a = t; } return a; }
+      function sigil(name, color) {
+        const h = hashStr(name); const pts = 5 + (h % 4); let skip = 2 + ((h >> 4) % Math.max(1, pts - 3)); if (gcd(skip, pts) !== 1) skip = 1;
+        const rot = (h >> 9) % 360, R = 21, cx = 30, cy = 30, v = [];
+        for (let i = 0; i < pts; i++) { const a = ((rot + (i * 360) / pts) * Math.PI) / 180; v.push([cx + R * Math.cos(a), cy + R * Math.sin(a)]); }
+        let d = "", idx = 0; for (let i = 0; i < pts; i++) { const p = v[idx]; d += (i ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1) + " "; idx = (idx + skip) % pts; } d += "Z";
+        let dots = ""; for (const p of v) dots += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="1.7" fill="${color}"/>`;
+        const ir = 5 + ((h >> 17) % 4);
+        return `<svg viewBox="0 0 60 60" width="100%" height="100%" aria-hidden="true"><circle cx="30" cy="30" r="27.5" fill="#0c0905"/><circle cx="30" cy="30" r="27.5" fill="none" stroke="#caa24e" stroke-width="0.8" opacity="0.65"/><circle cx="30" cy="30" r="24" fill="none" stroke="#caa24e" stroke-width="0.4" opacity="0.35"/><path d="${d}" fill="none" stroke="${color}" stroke-width="1.35" stroke-linejoin="round" opacity="0.95"/>${dots}<circle cx="30" cy="30" r="${ir}" fill="none" stroke="${color}" stroke-width="0.7" opacity="0.5"/><circle cx="30" cy="30" r="2" fill="${color}"/></svg>`;
+      }
+      function starGlyph(color) { return `<svg viewBox="0 0 60 60" aria-hidden="true"><path d="M30 8 L36 24 L53 24 L39 34 L44 51 L30 41 L16 51 L21 34 L7 24 L24 24 Z" fill="${color}" opacity="0.9"/></svg>`; }
+
+      const STATMETA = { full_consensus: { cls: "b-good", seal: "#7a9e57" }, majority_with_dissent: { cls: "b-warn", seal: "#b98a36" }, no_consensus: { cls: "b-bad", seal: "#8f3344" } };
+      function stat(s) { const m = STATMETA[s] || { cls: "b-warn", seal: "#b98a36" }; return { txt: (L.status && L.status[s]) || s || "—", cls: m.cls, seal: m.seal }; }
+      const STMAP = { hecho: "st-fact", inferencia: "st-infer", "especulación": "st-spec" };
+      const KMAP = { hecho: "k-fact", inferencia: "k-infer", "especulación": "k-spec" };
+      const SEV = { alta: "b-bad", media: "b-warn", baja: "b-good" };
+      const evText = (s) => (L.ev && L.ev[s]) || s;
+
+      function toast(msg) { toastEl.textContent = msg; toastEl.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => toastEl.classList.remove("show"), 2800); }
+
+      let STEPS = [], cursor = 0, focusIdx = null, evCycle = 0, allOpen = false;
+      const EVS = ["", "especulación", "inferencia", "hecho"];
+
+      // pliega el detalle de una tarjeta: añade un contenedor colapsable + botón ver más/menos
+      function addDetail(wrap, card, nodes) {
+        const real = nodes.filter(Boolean); if (!real.length) return;
+        const det = el("div", "detail"); const inner = el("div", "inner"); real.forEach((n) => inner.appendChild(n)); det.appendChild(inner); card.appendChild(det);
+        const btn = el("button", "morebtn", L.more);
+        btn.onclick = (e) => { e.stopPropagation(); const open = wrap.classList.toggle("open"); btn.textContent = open ? L.less : L.more; };
+        card.appendChild(btn);
+      }
+
+      function render(d) {
+        document.title = L.title + " · " + (LANG === "es" ? "deliberación" : "deliberation");
+        document.documentElement.lang = LANG;
+        buildMast(d); buildToolbar(d);
+        const shell = el("div", "shell"); shell.appendChild(buildCouncil(d)); shell.appendChild(buildThread(d)); app.appendChild(shell);
+        app.appendChild(buildVerdict(d));
+        STEPS = Array.from(document.querySelectorAll(".step"));
+        STEPS.forEach((s, i) => { s.classList.add("anim"); s.style.animationDelay = Math.min(i * 70, 1400) + "ms"; });
+        const seek = document.getElementById("seek"); if (seek) { seek.max = String(STEPS.length); seek.value = String(STEPS.length); }
+        setCursor(STEPS.length); wireKeys();
+      }
+
+      function buildMast(d) {
+        const m = el("header", "masthead anim");
+        m.appendChild(el("div", "crest", "✦ ✦ ✦"));
+        m.appendChild(el("div", "kicker", L.kicker));
+        m.appendChild(el("h1", null, L.title));
+        m.appendChild(el("div", "rule"));
+        if (d.question) { const q = el("p", "question"); q.appendChild(el("span", "q", "“")); q.appendChild(document.createTextNode(d.question)); q.appendChild(el("span", "q", "”")); m.appendChild(q); }
+        const meta = el("div", "meta-row"); const si = stat(d.status);
+        meta.appendChild(el("span", "badge " + si.cls, si.txt));
+        if (d.consensus_ratified) meta.appendChild(el("span", "badge b-good", L.ratified));
+        const add = (label, val) => { const p = el("span", "pill"); p.append(label + " "); p.appendChild(el("b", null, val)); meta.appendChild(p); };
+        if (d.realModel) add(L.model, d.realModel);
+        add(L.voices, String(d.agents ?? "?")); add(L.rounds, String(d.rounds_used ?? "?")); add(L.mode, d.mode || "?");
+        if (d.grounded) meta.appendChild(el("span", "pill", L.withSources));
+        m.appendChild(meta);
+        const t = el("div", "tension"); const lab = el("div", "lab"); lab.appendChild(el("span", null, L.convergence)); lab.appendChild(el("span", null, L.divergence)); t.appendChild(lab);
+        const track = el("div", "track"); const mark = el("div", "mark"); track.appendChild(mark); t.appendChild(track); m.appendChild(t);
+        app.appendChild(m); requestAnimationFrame(() => { mark.style.left = tension(d) + "%"; });
+      }
+      function tension(d) { let t = 45; if (d.consensus_ratified) t = 12; else if (d.status === "full_consensus") t = 22; else if (d.status === "majority_with_dissent") t = 60; else if (d.status === "no_consensus") t = 85; t += Math.min(18, (d.cruxes ? d.cruxes.length : 0) * 7) + Math.min(14, (d.dissent ? d.dissent.length : 0) * 8); return Math.max(5, Math.min(97, t)); }
+
+      function buildToolbar(d) {
+        const bar = el("div", "toolbar anim");
+        const play = el("button", "ctrl", L.play); play.id = "play"; bar.appendChild(play);
+        const scrub = el("div", "scrub"); const seek = el("input", "seek"); seek.type = "range"; seek.min = "0"; seek.value = "0"; seek.id = "seek";
+        const count = el("span", "count", ""); count.id = "count"; scrub.appendChild(seek); scrub.appendChild(count); bar.appendChild(scrub);
+        const beads = el("div", "beads"); (d.transcript || []).forEach((_, i) => { const b = el("button", "bead"); b.title = L.round + " " + (i + 1); b.onclick = () => { const mm = document.getElementById("rm" + (i + 1)); if (mm) mm.scrollIntoView({ block: "center" }); }; beads.appendChild(b); }); bar.appendChild(beads);
+        bar.appendChild(el("span", "sp"));
+        const exp = el("button", "ctrl", L.expandAll); exp.id = "expbtn"; exp.onclick = toggleAll; bar.appendChild(exp);
+        const ev = el("button", "ctrl", L.evidence); ev.id = "evbtn"; ev.onclick = cycleEvidence; bar.appendChild(ev);
+        const rev = el("button", "ctrl", L.unmask); rev.id = "revbtn"; rev.onclick = toggleReveal; bar.appendChild(rev);
+        app.appendChild(bar);
+        seek.addEventListener("input", () => { pause(); setCursor(+seek.value); });
+        play.onclick = togglePlay;
+      }
+
+      function buildCouncil(d) {
+        const aside = el("aside", "council anim"); aside.appendChild(el("h2", null, L.council));
+        (d.participants || []).forEach((p) => {
+          const card = el("div", "member"); card.style.setProperty("--c", pc(p.idx)); card.dataset.idx = p.idx;
+          card.appendChild(svgBox(sigil(p.fictionalName, praw(p.idx)), "sigil"));
+          const info = el("div"); info.appendChild(el("div", "nm", p.fictionalName)); if (p.style) info.appendChild(el("div", "st", p.style));
+          const real = el("div", "real"); real.append(L.believesOnly); real.appendChild(el("b", null, p.trueModel || "?")); info.appendChild(real);
+          card.appendChild(info); card.onclick = () => toggleFocus(p.idx, card); aside.appendChild(card);
+        });
+        const lg = el("div", "legend");
+        lg.innerHTML = '<span class="dot" style="background:var(--good)"></span>' + L.ev.hecho + ' &nbsp; <span class="dot" style="background:var(--warn)"></span>' + L.ev.inferencia + ' &nbsp; <span class="dot" style="background:var(--spec)"></span>' + L.ev["especulación"] + '<br><span style="color:var(--ox)">🜂 ' + L.redteam + '</span> &nbsp; <span style="color:var(--gold-bright)">⚖ ' + L.moderator + '</span><br><span style="opacity:.9">' + L.flow + '</span>';
+        aside.appendChild(lg); return aside;
+      }
+
+      function buildThread(d) {
+        const main = el("main", "thread"); main.appendChild(el("div", "sec", L.minutes));
+        const meds = d.mediations || [], rts = d.redteams || [];
+        (d.transcript || []).forEach((entries, i) => {
+          const round = i + 1; const rm = el("div", "round-mark"); rm.id = "rm" + round;
+          rm.appendChild(el("div", "orb", String(round)));
+          const rt = el("div", "rt"); rt.appendChild(document.createTextNode(L.round + " " + round)); rt.appendChild(el("small", null, round === 1 ? L.opening : L.rebuttal)); rm.appendChild(rt); main.appendChild(rm);
+          const r = rts.find((t) => t.round === round);
+          const md = meds.find((t) => t.round === round);
+          const sum = el("div", "round-sum");
+          const changes = (entries || []).filter((e) => e.output && e.output.changed_position).length;
+          sum.appendChild(el("span", null, (entries || []).length + " " + L.voices));
+          if (changes) sum.appendChild(el("span", null, "↻ " + changes + " " + L.changes));
+          if (r) sum.appendChild(el("span", null, "🜂 " + ((L.sev && L.sev[r.output.severity]) || r.output.severity)));
+          if (md) sum.appendChild(el("span", null, "⚖ " + stat(md.output.status).txt));
+          main.appendChild(sum);
+          (entries || []).forEach((e) => main.appendChild(stmtEntry(d, e, round)));
+          if (r) main.appendChild(redteamEntry(r.output, round));
+          if (md) main.appendChild(medEntry(md.output, round));
+        });
+        if (d.ratification) main.appendChild(ratifyEntry(d.ratification));
+        return main;
+      }
+
+      function stmtEntry(d, e, round) {
+        const o = e.output || {}; const wrap = el("div", "entry stmt step"); wrap.dataset.idx = e.idx;
+        const card = el("div", "card"); card.style.setProperty("--c", pc(e.idx));
+        const head = el("div", "head"); head.appendChild(svgBox(sigil(e.name, praw(e.idx)), "mini")); head.appendChild(el("span", "who", e.name));
+        const tags = el("div", "tags"); if (o.changed_position) tags.appendChild(el("span", "tag chg", L.changed));
+        if (typeof o.confidence === "number") { const c = el("span", "tag conf"); c.append(L.conf + " "); const bar = el("span", "bar"); const i = el("i"); i.style.width = Math.round(o.confidence * 100) + "%"; bar.appendChild(i); c.appendChild(bar); tags.appendChild(c); }
+        head.appendChild(tags); card.appendChild(head);
+        if (o.stance) card.appendChild(rich("div", "stance", o.stance));
+        // --- detalle plegable ---
+        const det = [];
+        if (o.reasoning) det.push(rich("div", "reason", o.reasoning));
+        if (Array.isArray(o.key_points) && o.key_points.length) {
+          const ul = el("ul", "kp");
+          o.key_points.forEach((k) => { const li = el("li"); if (typeof k === "string") li.appendChild(document.createTextNode(k)); else { if (k.status) { li.classList.add(KMAP[k.status] || "k-infer"); li.appendChild(el("span", "st-pill " + (STMAP[k.status] || "st-infer"), evText(k.status))); } li.appendChild(document.createTextNode(k.point || "")); } ul.appendChild(li); });
+          det.push(ul);
+        }
+        if (o.strongest_counterview) { const a = el("div", "aside"); a.appendChild(el("b", null, L.selfcrit)); a.appendChild(rich("div", null, o.strongest_counterview)); det.push(a); }
+        if (Array.isArray(o.responses_to_others) && o.responses_to_others.length) {
+          const rs = el("div", "resp");
+          o.responses_to_others.forEach((r) => { const row = el("div", "r " + (r.agreement || "")); row.appendChild(el("span", "hd", "↔ " + (r.model || "?") + " · " + ((L.agr && L.agr[r.agreement]) || r.agreement || ""))); if (r.note) row.appendChild(document.createTextNode(" — " + r.note)); if (r.steelman) row.appendChild(el("span", "steel", L.steelman + ": " + r.steelman)); rs.appendChild(row); });
+          det.push(rs);
+        }
+        if (Array.isArray(o.sources) && o.sources.length) { const sr = el("div", "sources"); sr.appendChild(el("div", "lab2", L.sources)); o.sources.forEach((s) => { const line = el("span", "s"); line.appendChild(document.createTextNode((s.claim || "") + " — ")); line.appendChild(el("code", null, s.source || "")); sr.appendChild(line); }); det.push(sr); }
+        addDetail(wrap, card, det); wrap.appendChild(card); return wrap;
+      }
+
+      function redteamEntry(o, round) {
+        o = o || {}; const wrap = el("div", "entry redteam step"); const card = el("div", "card");
+        const head = el("div", "head"); head.appendChild(svgBox(starGlyph("var(--ox)"), "mini")); head.appendChild(el("span", "who", L.redteam));
+        const tags = el("div", "tags"); if (o.severity) tags.appendChild(el("span", "badge " + (SEV[o.severity] || "b-warn"), L.severity + " " + ((L.sev && L.sev[o.severity]) || o.severity))); if (o.unanswered) tags.appendChild(el("span", "badge b-bad", L.unanswered)); head.appendChild(tags); card.appendChild(head);
+        if (o.strongest_objection) card.appendChild(rich("div", "obj", o.strongest_objection));
+        const det = []; if (o.target_position) det.push(el("div", "tgt", L.targets + " " + o.target_position)); if (o.failure_mode) det.push(rich("div", "fm", L.failmode + " " + o.failure_mode));
+        addDetail(wrap, card, det); wrap.appendChild(card); return wrap;
+      }
+
+      function medEntry(o, round) {
+        o = o || {}; const wrap = el("div", "entry mediator step"); const card = el("div", "card");
+        const head = el("div", "head"); head.appendChild(svgBox(starGlyph("var(--gold)"), "mini")); head.appendChild(el("span", "who", L.moderator));
+        const tags = el("div", "tags"); const si = stat(o.status); tags.appendChild(el("span", "badge " + si.cls, si.txt));
+        if (o.redteam_addressed === true) tags.appendChild(el("span", "tag", "🜂 " + L.addressed)); if (o.redteam_addressed === false) tags.appendChild(el("span", "tag", "🜂 " + L.pending)); head.appendChild(tags); card.appendChild(head);
+        card.appendChild(el("div", "lab2", L.ruling2));
+        if (o.consensus_reached && o.consensus_statement) card.appendChild(rich("div", "stance", o.consensus_statement));
+        else if (o.guidance_next_round) { card.appendChild(el("div", "lab2", L.guidance)); card.appendChild(rich("div", "reason", o.guidance_next_round)); }
+        const det = [];
+        if (o.confidence_note) { const w = el("div"); w.appendChild(el("div", "lab2", L.confread)); w.appendChild(rich("div", "reason", o.confidence_note)); det.push(w); }
+        if (Array.isArray(o.open_cruxes) && o.open_cruxes.length) { const w = el("div"); w.appendChild(el("div", "lab2", L.cruxesOpen)); const ul = el("ul", "cruxlist"); o.open_cruxes.forEach((c) => ul.appendChild(el("li", null, c.issue || ""))); w.appendChild(ul); det.push(w); }
+        addDetail(wrap, card, det); wrap.appendChild(card); return wrap;
+      }
+
+      function ratifyEntry(rat) {
+        const wrap = el("div", "entry ratify step"); const card = el("div", "card");
+        const head = el("div", "head"); head.appendChild(el("span", "who", "🗳 " + L.ratification)); head.appendChild(el("span", "tag", L.round.toLowerCase() + " " + (rat.round ?? "?"))); card.appendChild(head);
+        if (rat.statement) { const s = el("div", "stmt2"); s.append("“" + rat.statement + "”"); card.appendChild(s); }
+        const votes = el("div", "votes");
+        (rat.votes || []).forEach((v) => { const o = v.output || {}; const row = el("div", "vote " + (o.ratifies ? "y" : "n")); row.appendChild(el("span", "mk", o.ratifies ? "✓" : "✗")); const tx = el("span"); tx.appendChild(el("b", null, v.name)); tx.append(o.ratifies ? " " + L.ratifies : (o.objection ? " — " + o.objection : " " + L.objects)); row.appendChild(tx); votes.appendChild(row); });
+        card.appendChild(votes); wrap.appendChild(card); return wrap;
+      }
+
+      function buildVerdict(d) {
+        const v = el("div", "verdict step anim"); const frame = el("div", "frame"); const si = stat(d.status);
+        const seal = el("div", "seal seal-disc"); seal.style.setProperty("--sc", si.seal); seal.innerHTML = starGlyph("rgba(0,0,0,.55)"); frame.appendChild(seal);
+        frame.appendChild(el("div", "vk", d.consensus_ratified ? L.rulingRat : L.ruling));
+        frame.appendChild(el("h2", null, si.txt));
+        frame.appendChild(rich("div", "statement", d.verdict || (d.rationale ? d.rationale : "—")));
+        const grid = el("div", "grid");
+        const col = (title, items, cls) => { if (!Array.isArray(items) || !items.length) return null; const c = el("div", "col " + (cls || "")); c.appendChild(el("h3", null, title)); const ul = el("ul"); items.forEach((it) => ul.appendChild(el("li", null, it))); c.appendChild(ul); return c; };
+        [col(L.agreements, d.agreements), col(L.cruxes, (d.cruxes || []).map((c) => c.issue || "")), col(L.dissent, (d.dissent || []).map((x) => (x.model ? x.model + ": " : "") + (x.view || "") + (x.why ? " — " + x.why : "")), "dis")].forEach((c) => c && grid.appendChild(c));
+        if (grid.children.length) frame.appendChild(grid);
+        if (d.confidence_note) frame.appendChild(rich("div", "note", L.confidence + " · " + d.confidence_note));
+        if (d.rationale && d.verdict) frame.appendChild(rich("div", "note", L.reasoning + " · " + d.rationale));
+        v.appendChild(frame); return v;
+      }
+
+      function setCursor(n) {
+        cursor = Math.max(0, Math.min(STEPS.length, n));
+        STEPS.forEach((s, i) => { s.classList.toggle("veiled", i >= cursor); s.classList.toggle("cursor", i === cursor - 1 && cursor < STEPS.length); });
+        const seek = document.getElementById("seek"), count = document.getElementById("count");
+        if (seek) { seek.value = String(cursor); seek.style.setProperty("--fill", (STEPS.length ? (cursor / STEPS.length) * 100 : 100) + "%"); }
+        if (count) count.textContent = cursor + " / " + STEPS.length;
+      }
+      let playing = false, timer = null;
+      function togglePlay() { playing ? pause() : play(); }
+      function play() { playing = true; document.getElementById("play").textContent = L.pause; if (cursor >= STEPS.length) setCursor(0); const tick = () => { if (!playing) return; if (cursor >= STEPS.length) { pause(); return; } setCursor(cursor + 1); const cur = STEPS[cursor - 1]; if (cur) cur.scrollIntoView({ block: "center" }); timer = setTimeout(tick, 900); }; tick(); }
+      function pause() { playing = false; if (timer) clearTimeout(timer); const p = document.getElementById("play"); if (p) p.textContent = L.play; }
+
+      function toggleFocus(idx, card) {
+        if (focusIdx === idx) { focusIdx = null; document.body.classList.remove("has-focus"); document.querySelectorAll(".member.sel").forEach((m) => m.classList.remove("sel")); return; }
+        focusIdx = idx; document.body.classList.add("has-focus"); document.querySelectorAll(".member").forEach((m) => m.classList.toggle("sel", m === card));
+        document.querySelectorAll(".entry").forEach((en) => en.classList.toggle("is-focus", en.classList.contains("stmt") && en.dataset.idx === String(idx)));
+        const first = document.querySelector('.entry.stmt[data-idx="' + idx + '"]'); if (first) first.scrollIntoView({ block: "center" });
+      }
+      function cycleEvidence() {
+        evCycle = (evCycle + 1) % EVS.length; document.body.classList.remove("ev-hecho", "ev-inferencia", "ev-especulación"); const btn = document.getElementById("evbtn");
+        if (EVS[evCycle]) { document.body.classList.add("ev-" + EVS[evCycle]); btn.classList.add("is-on"); btn.textContent = "◉ " + evText(EVS[evCycle]); } else { btn.classList.remove("is-on"); btn.textContent = L.evidence; }
+      }
+      function toggleAll() {
+        allOpen = !allOpen; const btn = document.getElementById("expbtn"); btn.textContent = allOpen ? L.collapseAll : L.expandAll; btn.classList.toggle("is-on", allOpen);
+        document.querySelectorAll(".entry").forEach((en) => { const has = en.querySelector(".morebtn"); if (!has) return; en.classList.toggle("open", allOpen); has.textContent = allOpen ? L.less : L.more; });
+      }
+      function toggleReveal() {
+        const on = document.body.classList.toggle("unmasked"); const btn = document.getElementById("revbtn"); btn.classList.toggle("is-on", on); btn.textContent = on ? L.mask : L.unmask;
+        if (on) { document.querySelectorAll(".member").forEach((m, i) => { m.classList.add("pulse"); setTimeout(() => m.classList.remove("pulse"), 1200 + i * 80); }); toast(L.veil + (window.__rm || (LANG === "es" ? "el mismo modelo" : "the same model"))); }
+      }
+      function wireKeys() {
+        document.addEventListener("keydown", (e) => {
+          if (e.target && /input|textarea/i.test(e.target.tagName)) return;
+          if (e.key === " ") { e.preventDefault(); togglePlay(); }
+          else if (e.key === "ArrowRight") { pause(); setCursor(cursor + 1); }
+          else if (e.key === "ArrowLeft") { pause(); setCursor(cursor - 1); }
+          else if (e.key.toLowerCase() === "r") toggleReveal();
+          else if (e.key.toLowerCase() === "e") cycleEvidence();
+          else if (e.key.toLowerCase() === "a") toggleAll();
+        });
+      }
+
+      if (typeof DATA === "string") {
+        app.appendChild(el("div", "placeholder", L.noData));
+      } else {
+        try { window.__rm = DATA.realModel || ""; render(DATA); }
+        catch (err) { app.appendChild(el("div", "placeholder", L.err + (err && err.message))); }
+      }
+    </script>
+  </body>
+</html>
