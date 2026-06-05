@@ -10,16 +10,20 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { tmpdir } from 'node:os'
 import { spawn } from 'node:child_process'
 
-// Args: <data.json> <salida.html> [--open]. Las banderas (--xxx) se filtran de los posicionales.
+// Args: <data.json> [salida.html] [--open]. Las banderas (--xxx) se filtran de los posicionales.
+// Si se OMITE la salida, el HTML se escribe en un fichero TEMPORAL del SO (no ensucia el proyecto).
 const argv = process.argv.slice(2)
 const doOpen = argv.includes('--open')
-const [dataPath, outPath] = argv.filter((a) => !a.startsWith('--'))
-if (!dataPath || !outPath) {
-  console.error('Uso: node conclave-render.mjs <data.json> <salida.html> [--open]')
+const positional = argv.filter((a) => !a.startsWith('--'))
+const dataPath = positional[0]
+if (!dataPath) {
+  console.error('Uso: node conclave-render.mjs <data.json> [salida.html] [--open]')
   process.exit(1)
 }
+const outPath = positional[1] || join(tmpdir(), `conclave-${Date.now()}.html`)
 
 const here = dirname(fileURLToPath(import.meta.url))
 const template = readFileSync(join(here, 'conclave.viewer.html'), 'utf8')

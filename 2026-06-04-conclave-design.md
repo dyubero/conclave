@@ -515,6 +515,7 @@ Cambios al motor y al visualizador que cierran defectos **reales** detectados al
 - **(h) Descubribilidad e interacción** — overlay de **ayuda** (tecla **?**) con los atajos; botón **copiar veredicto** como Markdown.
 - **(i) Menos fricción** — `conclave-render.mjs` acepta `--open` (render + abrir el navegador en un solo paso; multiplataforma `start`/`open`/`xdg-open`).
 - **(j) Pregunta larga legible** — el masthead detecta preguntas largas (>260 car.) y las pinta en cuerpo pequeño, **formateadas con markdown** (párrafos, listas, código), alineadas a la izquierda y **plegables** («ver más»), en vez de un muro de serif gigante centrado. Las preguntas cortas conservan el *display* elegante itálico.
+- **(k) HTML de `--ui` temporal por defecto** — `conclave-render.mjs` escribe el HTML en un **fichero temporal del SO** cuando se omite la ruta de salida (`node conclave-render.mjs <data.json> --open`) e imprime la ruta; solo persiste en una ubicación concreta si el usuario la pide (`--ui <ruta>`). El `conclave-data.json` también es temporal y se borra. Evita ensuciar el proyecto con HTML generados.
 
 **Return extra v2.1:** `metrics`, `verdict_audit`; `grounded` pasa a honesto. **Fases:** Apertura · Debate · Mediación · Ratificación · **Auditoría** · Síntesis.
 

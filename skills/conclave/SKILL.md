@@ -31,6 +31,7 @@ Se apoya en la herramienta `Workflow`. **Invocar esta skill es el opt-in**; no r
 | `purist` | flag `--purist` presente | false |
 | `savePath` | `--save [ruta]` | sin guardar; `--save` sin ruta → `conclave-<slug>-<hoy>.md` en el cwd |
 | `ui` | flag `--ui` **o** petición en lenguaje natural ("quiero ver el debate", "enséñame el debate al final", "con interfaz/gráfico/visual") | false |
+| `uiOut` | ruta o carpeta tras `--ui` **o** petición ("guárdalo en…", "déjalo en el escritorio") | vacío → **fichero temporal** |
 
 Si falta `question`, pídela y no lances nada.
 
@@ -75,11 +76,12 @@ Si el workflow devolvió `{ error }`, muéstralo y no inventes resultado.
 
 Si `ui` está activo, genera y abre el visualizador HTML (tribunal a luz de vela con **sigilos** SVG por modelo, **rail del consejo** con filtro por miembro, línea de tiempo con estatus probatorio / steelman / fuentes / **postura anterior** al cambiar, paneles de **equipo rojo** y **mediador**, **ratificación**, **veredicto con sello de lacre** y **auditoría**, y controles de **replay** (scrubber arrastrable), **desvelado** de identidades, **filtro por evidencia**, **copiar veredicto** como Markdown y **overlay de ayuda** con la tecla `?`):
 
-1. Serializa el objeto `result` del workflow a JSON y escríbelo con la herramienta **Write** (UTF-8 garantizado) a `conclave-data.json` (cwd o temp). **NO** uses PowerShell `Out-File`/`Set-Content`/`echo >` para este fichero: por defecto codifican en UTF-16/ANSI (o doble-codifican) y **rompen los acentos** — saldría `presunciÃ³n` en vez de `presunción`. El renderizador tolera BOM y emite el HTML con BOM UTF-8.
-2. Renderiza **y abre** en un solo paso con el script que trae la skill (no reescribas el HTML); el flag `--open` abre el navegador (multiplataforma: `start`/`open`/`xdg-open`):
-   `node "<dir-skill>/conclave-render.mjs" <data.json> <salida.html> --open`
-   Sustituye `<dir-skill>` por el **directorio base de la skill** (el que Claude Code muestra al cargarla). Salida sugerida en el cwd: `conclave-<slug>-<fecha>.html`. (Si prefieres abrirlo tú, omite `--open` y usa `Invoke-Item`/`open`/`xdg-open`.)
-3. (Opcional) borra el `conclave-data.json` temporal.
+1. Serializa el objeto `result` del workflow a JSON y escríbelo con la herramienta **Write** (UTF-8 garantizado) a un fichero **temporal**, p. ej. `<temp>/conclave-data.json` (Windows `%TEMP%`, macOS/Linux `/tmp`). **NO** uses PowerShell `Out-File`/`Set-Content`/`echo >` para este fichero: por defecto codifican en UTF-16/ANSI (o doble-codifican) y **rompen los acentos** — saldría `presunciÃ³n` en vez de `presunción`. El renderizador tolera BOM y emite el HTML con BOM UTF-8.
+2. Renderiza **y abre** en un solo paso con el script de la skill (no reescribas el HTML). **Por defecto OMITE la ruta de salida**: así el HTML se escribe en un **fichero temporal del SO** y no ensucia el proyecto. El flag `--open` abre el navegador (multiplataforma `start`/`open`/`xdg-open`); el script **imprime la ruta final** del HTML (comunícasela al usuario):
+   `node "<dir-skill>/conclave-render.mjs" <data.json> --open`
+   - **Solo si el usuario pide guardarlo** en un sitio concreto (`--ui <ruta>`, "guárdalo en…", una carpeta o fichero): pásalo como 2.º argumento → `node "<dir-skill>/conclave-render.mjs" <data.json> <salida.html> --open` (sugerencia de nombre: `conclave-<slug>-<fecha>.html`).
+   Sustituye `<dir-skill>` por el **directorio base de la skill** (el que Claude Code muestra al cargarla).
+3. Borra el `conclave-data.json` temporal (el HTML es autocontenido).
 
 El HTML resultante es autocontenido (datos + CSS + JS inline), portable y offline. El renderizador tolera BOM en el JSON.
 
@@ -89,4 +91,4 @@ Si el usuario pasó `--save`, escribe `transcript` a `savePath` como Markdown: p
 
 ## Flags
 
-`--agents N` (2-5, def 3) · `--rounds N` (máx total, def 5) · `--min-rounds N` (mín total antes de cerrar por consenso, def 3) · `--purist` (sin lentes-semilla, solo el engaño) · `--save [ruta]` (guarda el transcript completo) · `--ui` (abre el visualizador HTML del debate) · `--lang xx` (fuerza el idioma; por defecto autodetecta el de la petición)
+`--agents N` (2-5, def 3) · `--rounds N` (máx total, def 5) · `--min-rounds N` (mín total antes de cerrar por consenso, def 3) · `--purist` (sin lentes-semilla, solo el engaño) · `--save [ruta]` (guarda el transcript completo) · `--ui [ruta]` (abre el visualizador HTML; por defecto en un **fichero temporal** — pasa una ruta/carpeta para guardarlo ahí) · `--lang xx` (fuerza el idioma; por defecto autodetecta el de la petición)
