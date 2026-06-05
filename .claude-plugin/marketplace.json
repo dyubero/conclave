@@ -1,6 +1,7 @@
 {
   "name": "conclave-marketplace",
   "owner": { "name": "dyubero" },
+  "metadata": { "description": "Marketplace de conclave — la skill de debate multi-agente (mismo modelo, identidades disfrazadas) hasta consenso para Claude Code, con visualizador HTML." },
   "plugins": [
     {
       "name": "conclave",
