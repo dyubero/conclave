@@ -520,3 +520,28 @@ Cambios al motor y al visualizador que cierran defectos **reales** detectados al
 **Return extra v2.1:** `metrics`, `verdict_audit`; `grounded` pasa a honesto. **Fases:** Apertura · Debate · Mediación · Ratificación · **Auditoría** · Síntesis.
 
 **Descartado a propósito** (acuerdo del panel): inversión en sigilos SVG, autoplay a velocidad fija como *feature*, refactor del HTML monolítico (single-file offline es virtud), export PDF/imagen (se prefiere copiar-como-Markdown). La calibración de confianza y la fuga de i18n en los enums quedan de baja prioridad (cosméticos / coste-riesgo desfavorable).
+
+---
+
+## 17. v1.1 — Calidad del veredicto e información del visualizador (tras dos meta-cónclaves *grounded*, 2026-06-08)
+
+Dos cónclaves (motor + UI) sobre el **código real** (ya en el repo, que los agentes pudieron leer y verificar línea a línea) produjeron hallazgos confirmados. Cambios:
+
+**Motor (`conclave.workflow.mjs`):**
+
+- **(a) Respuesta a fondo (`verdict_detail`)** — nuevo campo en `MEDIATOR_SCHEMA`. Al cerrar consenso, el mediador —TRAS juzgar primero, orden obligatorio para no «motivar la conclusión»— redacta una respuesta extensa que integra lo más fuerte de TODAS las voces y preserva la disidencia **verbatim**. `consensus_statement` queda como tesis breve (lo que se ratifica); `verdict_detail` es la respuesta real al usuario. La tersedad era artefacto del prompt, no del esquema.
+- **(b) Veto determinista de la auditoría** — la auditoría deja de ser decorativa: si `robustness:baja` o `unaddressed_redteam`, el `status` no puede ser `full_consensus` (se rebaja a `majority_with_dissent`, `consensus_ratified=false`). Elimina la incoherencia `full_consensus` + `robustez baja`.
+- **(c) Reinyección de fuentes + autocrítica** al `renderFull` que ven equipo rojo, mediador y auditor (antes el auditor juzgaba `relies_on_unverified` sin ver las URLs).
+- **(d) Equipo rojo contra el eco** — instruido para atacar la convergencia-por-eco (cero `disagree`, todo `partial` = cortesía del mismo modelo, no corroboración independiente).
+- **Descartado** (panel motor): mediadores/equipos-rojo múltiples (mismo modelo → votos correlacionados), calibración numérica de la confianza, voto ponderado por confianza, re-ronda de reparación, más rondas por defecto.
+
+**Visualizador (`conclave.viewer.html`):**
+
+- **(e) TL;DR + orientación arriba del todo** — FUERA de `STEPS` (no se vela en el replay): frase «qué es esto + orden de lectura» (gestalt) + fila de resultado (estado · semáforo de **fiabilidad** · banderas · cierre honesto «ratificado en ronda N» / «N rondas · sin ratificar») con ancla al veredicto. Solo campos categóricos por `textContent` (respeta el invariante: texto del modelo nunca por `innerHTML`).
+- **(f) Respuesta a fondo** (`verdict_detail`) en el marco del veredicto y en «copiar veredicto».
+- **(g) Rótulos en lenguaje llano** — `steelman → «Su mejor versión»`, `crux`/«Cruces» → «Puntos en disputa» (los únicos genuinamente crípticos; `failmode`/`selfcrit` ya estaban claros).
+- **(h) Eliminado el medidor de tensión** — recodificaba datos ya mostrados y fingía una medición continua inexistente.
+- **(i) `@media print`** (tema claro, sin cromo, todo desplegado) + **accesibilidad** (`aria-expanded` en los plegables, `role="button"` + teclado en los miembros del consejo). «Exportar» ya funcionaba vía copiar-Markdown; faltaba imprimir/PDF y lectores de pantalla.
+- **Conservado**: el blur (solo sobre el nombre del modelo), los sigilos, el replay (aterriza desvelado, opt-in).
+
+**Return extra v1.1:** `verdict_detail`; `status`/`consensus_ratified` dependen ahora del veto de auditoría.

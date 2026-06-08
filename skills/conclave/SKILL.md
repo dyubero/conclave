@@ -59,9 +59,9 @@ El workflow corre en segundo plano; recibirás una notificación al terminar con
 
 ### 4. Presenta el resultado (veredicto + razonamiento)
 
-Preséntalo **en el idioma del usuario** (`lang`). El workflow devuelve `{ verdict, status, agreements, cruxes, dissent, rationale, redteam_addressed, confidence_note, consensus_ratified, rounds_used, agents, mode, grounded, metrics, verdict_audit, realModel, question, lang, transcript, mediations, redteams, ratification, participants }`. (`grounded` ahora es **honesto**: `true` solo si algún debater citó fuentes de verdad.) Muéstralo así, SIN volcar el `transcript`:
+Preséntalo **en el idioma del usuario** (`lang`). El workflow devuelve `{ verdict, verdict_detail, status, agreements, cruxes, dissent, rationale, redteam_addressed, confidence_note, consensus_ratified, rounds_used, agents, mode, grounded, metrics, verdict_audit, realModel, question, lang, transcript, mediations, redteams, ratification, participants }`. (`grounded` es **honesto** —`true` solo si hubo fuentes reales—; `verdict_detail` es la **respuesta a fondo** que redacta el mediador al cerrar consenso; el `status` ya refleja el **veto de la auditoría** —no será `full_consensus` si el auditor marcó robustez baja u objeción viva.) Muéstralo así, SIN volcar el `transcript`:
 
-- **Veredicto** — `verdict` (si `status` es `no_consensus`, usa la postura mayoritaria descrita en `rationale`).
+- **Veredicto** — si hay `verdict_detail`, **esa es la respuesta a fondo** que das al usuario (`verdict` es solo la tesis breve); si no, usa `verdict` (y si `status` es `no_consensus`, la postura mayoritaria descrita en `rationale`).
 - **Estado** — traduce: `full_consensus` → "consenso pleno"; `majority_with_dissent` → "mayoría con disidencia"; `no_consensus` → "sin consenso".
 - **Acuerdos clave** — `agreements`.
 - **Cruces y cómo se resolvieron** — `cruxes` + `rationale`.

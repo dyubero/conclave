@@ -152,7 +152,8 @@ const MEDIATOR_SCHEMA = {
   properties: {
     consensus_reached: { type: 'boolean' },
     status: { type: 'string', enum: ['full_consensus', 'majority_with_dissent', 'no_consensus'] },
-    consensus_statement: { type: ['string', 'null'] },
+    consensus_statement: { type: ['string', 'null'], description: 'La tesis central BREVE (1-3 frases) — lo que se ratifica. Null si aún no hay consenso.' },
+    verdict_detail: { type: ['string', 'null'], description: 'Solo al cerrar consenso: la RESPUESTA A FONDO a la pregunta original (varios párrafos / markdown) que integra lo más fuerte de TODAS las voces y responde de verdad. Preserva la disidencia. Null/vacío si aún no hay consenso.' },
     points_of_agreement: { type: 'array', items: { type: 'string' } },
     open_cruxes: {
       type: 'array',
@@ -247,6 +248,8 @@ function renderFull() {
       if (Array.isArray(o.responses_to_others) && o.responses_to_others.length) {
         lines.push('  Reacciones: ' + o.responses_to_others.map((rr) => `${rr.model} ${rr.agreement}${rr.note ? ' (' + clip(rr.note, 80) + ')' : ''}`).join('; '))
       }
+      if (o.strongest_counterview) lines.push(`  Autocrítica: ${clip(o.strongest_counterview, 160)}`)
+      if (Array.isArray(o.sources) && o.sources.length) lines.push('  Fuentes: ' + o.sources.map((s) => `${clip(s.claim, 60)} → ${s.source}`).join(' | '))
     }
     const rt = redteams.find((t) => t.round === r + 1)
     if (rt) lines.push(`🔴 Equipo rojo ataca "${rt.output.target_position}": ${rt.output.strongest_objection} [${rt.output.severity}]`)
@@ -308,6 +311,9 @@ function redteamPrompt(round) {
   p.push(`\nPregunta:\n${question}`)
   p.push(`\nTranscript completo (hasta la ronda ${round}):\n${renderFull()}`)
   p.push(
+    `\nVIGILA EL ECO: si en las reacciones casi nadie marca 'disagree' y casi todo es 'agree/partial', sospecha que el "acuerdo" es CORTESÍA o eco del mismo patrón de razonamiento (todos son la misma arquitectura), no corroboración independiente. Si lo detectas, atácalo explícitamente como modo de fallo (convergencia-por-eco) y dale severidad acorde.`,
+  )
+  p.push(
     `\nIdentifica la postura líder o emergente y atácala con la objeción MÁS FUERTE posible (haz steelman del contra-argumento), ` +
       `describe su modo de fallo más probable en la práctica y su severidad. Indica si, tras esta ronda, la objeción sigue sin respuesta convincente.`,
   )
@@ -338,6 +344,12 @@ function mediatorPrompt(round, isLast, canConclude) {
         `pon consensus_reached=true, status 'full_consensus' y redacta consensus_statement. Si todavía no, consensus_reached=false, resume y guía.`,
     )
   }
+  p.push(
+    `\nORDEN OBLIGATORIO (evita el sesgo de motivar la conclusión): PRIMERO juzga si hay consenso (consensus_reached, status); SOLO si cierras consenso, redacta DESPUÉS. ` +
+      `consensus_statement = la tesis central BREVE (1-3 frases), lo que se ratifica. ` +
+      `verdict_detail = la RESPUESTA A FONDO a la pregunta original (varios párrafos / markdown) que INTEGRE lo más fuerte de cada voz y responda de verdad, no solo repita la frase. ` +
+      `Preserva la disidencia y los cruces VERBATIM (de dissent/open_cruxes); NO los aplanes ni los suavices. Si no hay consenso, deja verdict_detail null.`,
+  )
   p.push(`\nDevuelve el resultado estructurado.`)
   return p.join('\n')
 }
@@ -492,17 +504,24 @@ if (verdictAudit) {
   log(`🔎 Auditoría: robustez ${verdictAudit.robustness}${verdictAudit.unaddressed_redteam ? ' · objeción viva sin responder' : ''}${verdictAudit.overconfidence_or_herding ? ' · posible herding' : ''}`)
 }
 
+// VETO determinista: la auditoría tiene CONSECUENCIA (antes era decorativa: podía coexistir full_consensus con robustez baja).
+// No se declara consenso pleno si el auditor marca el veredicto frágil (robustez baja) o deja una objeción de severidad alta viva.
+const auditVeto = !!(verdictAudit && (verdictAudit.robustness === 'baja' || verdictAudit.unaddressed_redteam))
+const finalRatified = consensusConfirmed && !auditVeto
+if (auditVeto) log(`⛔ Veto de auditoría: el consenso se rebaja a mayoría con disidencia (robustez ${verdictAudit.robustness}${verdictAudit.unaddressed_redteam ? ', objeción viva' : ''}).`)
+
 const m = lastMediation || {}
 return {
   verdict: m.consensus_statement != null ? m.consensus_statement : null,
-  status: consensusConfirmed ? 'full_consensus' : m.status || 'no_consensus',
+  verdict_detail: m.verdict_detail != null && m.verdict_detail !== '' ? m.verdict_detail : null,
+  status: finalRatified ? 'full_consensus' : consensusConfirmed ? 'majority_with_dissent' : m.status || 'no_consensus',
   agreements: m.points_of_agreement || [],
   cruxes: m.open_cruxes || [],
   dissent: m.dissent || [],
   rationale: m.rationale || '',
   redteam_addressed: typeof m.redteam_addressed === 'boolean' ? m.redteam_addressed : null,
   confidence_note: m.confidence_note || '',
-  consensus_ratified: consensusConfirmed,
+  consensus_ratified: finalRatified,
   rounds_used: history.length,
   agents: x,
   mode: purist ? 'purist' : 'seeded',

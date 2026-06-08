@@ -49,10 +49,13 @@
       .meta-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; margin: 26px 0 8px; }
       .pill { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: var(--muted); border: 1px solid var(--line-soft); background: rgba(0,0,0,.2); padding: 5px 12px; border-radius: 2px; }
       .pill b { color: var(--gold-bright); font-weight: 600; }
-      .tension { max-width: 420px; margin: 22px auto 0; }
-      .tension .lab { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--faint); margin-bottom: 6px; }
-      .tension .track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--good), var(--warn) 55%, var(--ox)); position: relative; box-shadow: inset 0 0 6px rgba(0,0,0,.5); }
-      .tension .mark { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; background: var(--vellum); border: 2px solid var(--ink); transform: translate(-50%, -50%); box-shadow: 0 0 12px rgba(247,217,154,.7); transition: left 1.1s cubic-bezier(.2,.8,.2,1); }
+      /* TL;DR + orientación: resultado y "qué es esto" arriba del todo, FUERA del replay */
+      .tldr { max-width: 760px; margin: 22px auto 0; text-align: center; }
+      .tldr .orient { font-size: 13.5px; color: var(--muted); line-height: 1.5; margin: 0 auto 13px; max-width: 660px; }
+      .tldr .res { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
+      .tldr .closed { font-family: var(--mono); font-size: 11px; color: var(--faint); letter-spacing: .3px; }
+      .tldr .see-verdict { display: inline-block; margin-top: 14px; background: rgba(232,179,90,.1); border: 1px solid var(--gold-deep); color: var(--gold-bright); font-family: var(--mono); font-size: 11px; letter-spacing: .6px; padding: 5px 16px; border-radius: 999px; cursor: pointer; transition: all .15s ease; }
+      .tldr .see-verdict:hover { background: rgba(232,179,90,.2); }
 
       .toolbar { position: sticky; top: 0; z-index: 30; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 30px 0 28px; padding: 12px 16px; border: 1px solid var(--line-soft); border-radius: 4px; background: linear-gradient(180deg, rgba(33,26,16,.92), rgba(20,16,10,.92)); backdrop-filter: blur(10px); box-shadow: var(--shadow); }
       .ctrl { font: inherit; font-size: 13px; color: var(--text); background: var(--surface-2); border: 1px solid var(--line); padding: 7px 12px; border-radius: 3px; cursor: pointer; transition: all .16s ease; letter-spacing: .3px; white-space: nowrap; }
@@ -180,6 +183,7 @@
       .verdict ul { margin: 0; padding-left: 18px; } .verdict li { margin: 5px 0; font-size: 14.5px; color: var(--text); }
       .verdict .col.dis li { color: var(--spec); }
       .verdict .note { margin-top: 24px; font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--line-soft); padding-top: 16px; font-style: italic; }
+      .verdict .vdetail { text-align: left; max-width: 720px; margin: 4px auto 0; color: var(--text); font-size: 15.5px; line-height: 1.66; } .verdict .vd-lab { text-align: center; margin-top: 22px; }
       .seal-disc { border-radius: 50%; display: grid; place-items: center; position: relative; background: radial-gradient(circle at 36% 30%, color-mix(in srgb, var(--sc) 55%, #fff 10%), var(--sc) 70%, color-mix(in srgb, var(--sc) 60%, #000 40%)); box-shadow: inset 0 -6px 14px rgba(0,0,0,.45), inset 0 4px 10px rgba(255,255,255,.18), 0 10px 22px -8px rgba(0,0,0,.7); }
       .seal-disc::before { content: ""; position: absolute; inset: 7%; border-radius: 50%; border: 1.5px dashed rgba(0,0,0,.3); }
       .seal-disc svg { width: 54%; height: 54%; opacity: .85; }
@@ -211,6 +215,18 @@
         .thread::before { left: 18px; } .entry { margin-left: 46px; } .round-mark .orb { width: 40px; height: 40px; } .verdict .grid { grid-template-columns: 1fr; }
       }
       @media (prefers-reduced-motion: reduce) { .glow, .member.pulse .sigil { animation: none; } .anim { animation: none; opacity: 1; } html { scroll-behavior: auto; } .detail { transition: none; } }
+      /* impresión / PDF: tema claro, sin cromo interactivo, todo desplegado y desvelado */
+      @media print {
+        :root { --bg: #fff; --ink: #fff; --bg-2: #fff; --surface: #fbf8f1; --surface-2: #f3eede; --line: #c9bb98; --line-soft: #ddd2b3; --text: #1b1509; --vellum: #1b1509; --muted: #4a3f22; --faint: #6a5c36; }
+        body { background: #fff !important; }
+        body::before, body::after, .glow, .toolbar, .toast, .help-ov, .tldr .see-verdict, .morebtn, .qbox .qmore { display: none !important; }
+        .step { opacity: 1 !important; filter: none !important; }
+        .detail { grid-template-rows: 1fr !important; }
+        .qbox.clamp .qbody { max-height: none !important; -webkit-mask-image: none !important; mask-image: none !important; }
+        .shell { grid-template-columns: 1fr !important; } .council { position: static; }
+        .card, .verdict .frame { box-shadow: none !important; }
+        .page { padding-bottom: 0; }
+      }
     </style>
   </head>
   <body>
@@ -229,13 +245,14 @@
         es: { title: "Cónclave", kicker: "deliberación a puerta cerrada", council: "El consejo", minutes: "Actas del debate",
           round: "Ronda", opening: "apertura", rebuttal: "réplica", redteam: "Equipo rojo", moderator: "Mediador",
           targets: "Ataca:", failmode: "Modo de fallo:", severity: "severidad", unanswered: "sin respuesta", addressed: "respondido", pending: "pendiente",
-          guidance: "Guía para la siguiente ronda", confread: "Lectura de confianza", cruxesOpen: "Cruces abiertos",
-          selfcrit: "Autocrítica", steelman: "Steelman", sources: "Fuentes", conf: "conf", changed: "↻ cambió", believesOnly: "se cree el único · ",
-          verdict: "Veredicto", rulingRat: "fallo ratificado", ruling: "fallo del cónclave", agreements: "Acuerdos", cruxes: "Cruces", dissent: "Disidencia",
+          guidance: "Guía para la siguiente ronda", confread: "Lectura de confianza", cruxesOpen: "Puntos sin resolver",
+          selfcrit: "Autocrítica", steelman: "Su mejor versión", sources: "Fuentes", conf: "conf", changed: "↻ cambió", believesOnly: "se cree el único · ",
+          verdict: "Veredicto", rulingRat: "fallo ratificado", ruling: "fallo del cónclave", agreements: "Acuerdos", cruxes: "Puntos en disputa", dissent: "Disidencia", detail: "Respuesta a fondo",
           confidence: "Confianza", reasoning: "Razonamiento", ratification: "Ratificación", ratifies: "ratifica", objects: "objeta",
           play: "▶ Reproducir", pause: "⏸ Pausa", evidence: "◐ Evidencia", unmask: "🜔 Desvelar", mask: "🜔 Velar", expandAll: "⤢ Expandir", collapseAll: "⤡ Colapsar",
           help: "? Ayuda", helpTitle: "Atajos de teclado", copyVerdict: "⧉ Copiar veredicto", copied: "Veredicto copiado al portapapeles", before: "Antes", audit: "Auditoría del veredicto", robustnessLbl: "robustez", auditUnverified: "afirmaciones no verificadas", auditRedteam: "objeción del equipo rojo viva", auditHerding: "sobreconfianza / herding", revByArg: "revisión por argumento",
           keys: [["Espacio", "reproducir / pausa"], ["← →", "paso a paso"], ["R", "desvelar identidades"], ["E", "filtro por evidencia"], ["A", "expandir / colapsar"], ["?", "esta ayuda"]],
+          whatIs: "Un cónclave: varias voces —el mismo modelo disfrazado de modelos rivales para des-sesgar el debate— discuten hasta un veredicto.", readOrder: "De arriba abajo: el consejo · el debate por rondas · el veredicto sellado.", reliability: "fiabilidad", seeVerdict: "Ver el veredicto ↓", ratifiedShort: "ratificado en ronda", unratifiedShort: "sin ratificar",
           more: "ver más", less: "ver menos", convergence: "convergencia", divergence: "divergencia", withSources: "🔎 con fuentes", ratified: "✓ ratificado",
           model: "modelo", voices: "voces", rounds: "rondas", mode: "modo", changes: "cambios de postura", ruling2: "Dictamen de la ronda", flow: "Cada ronda: las voces debaten → 🜂 el equipo rojo ataca → ⚖ el mediador dictamina; al cierre, ratificación.", veil: "El velo cae: todas las voces eran ", noData: "Plantilla sin datos. Genera el HTML con: node conclave-render.mjs <data.json> <salida.html>", err: "Error al renderizar: ",
           status: { full_consensus: "Consenso pleno", majority_with_dissent: "Mayoría con disidencia", no_consensus: "Sin consenso" },
@@ -243,13 +260,14 @@
         en: { title: "Conclave", kicker: "deliberation behind closed doors", council: "The council", minutes: "Minutes of the debate",
           round: "Round", opening: "opening", rebuttal: "rebuttal", redteam: "Red team", moderator: "Moderator",
           targets: "Targets:", failmode: "Failure mode:", severity: "severity", unanswered: "unanswered", addressed: "addressed", pending: "pending",
-          guidance: "Guidance for next round", confread: "Confidence read", cruxesOpen: "Open cruxes",
-          selfcrit: "Self-critique", steelman: "Steelman", sources: "Sources", conf: "conf", changed: "↻ changed", believesOnly: "believes it is the only one · ",
-          verdict: "Verdict", rulingRat: "ratified ruling", ruling: "the conclave's ruling", agreements: "Agreements", cruxes: "Cruxes", dissent: "Dissent",
+          guidance: "Guidance for next round", confread: "Confidence read", cruxesOpen: "Open disagreements",
+          selfcrit: "Self-critique", steelman: "Their strongest take", sources: "Sources", conf: "conf", changed: "↻ changed", believesOnly: "believes it is the only one · ",
+          verdict: "Verdict", rulingRat: "ratified ruling", ruling: "the conclave's ruling", agreements: "Agreements", cruxes: "Points of disagreement", dissent: "Dissent", detail: "In-depth answer",
           confidence: "Confidence", reasoning: "Reasoning", ratification: "Ratification", ratifies: "ratifies", objects: "objects",
           play: "▶ Play", pause: "⏸ Pause", evidence: "◐ Evidence", unmask: "🜔 Unmask", mask: "🜔 Mask", expandAll: "⤢ Expand", collapseAll: "⤡ Collapse",
           help: "? Help", helpTitle: "Keyboard shortcuts", copyVerdict: "⧉ Copy verdict", copied: "Verdict copied to clipboard", before: "Before", audit: "Verdict audit", robustnessLbl: "robustness", auditUnverified: "unverified claims", auditRedteam: "live red-team objection", auditHerding: "overconfidence / herding", revByArg: "revision by argument",
           keys: [["Space", "play / pause"], ["← →", "step"], ["R", "unmask identities"], ["E", "evidence filter"], ["A", "expand / collapse"], ["?", "this help"]],
+          whatIs: "A conclave: several voices —the same model disguised as rival models to de-bias the debate— argue to a verdict.", readOrder: "Top to bottom: the council · the round-by-round debate · the sealed verdict.", reliability: "reliability", seeVerdict: "See the verdict ↓", ratifiedShort: "ratified in round", unratifiedShort: "unratified",
           more: "show more", less: "show less", convergence: "convergence", divergence: "divergence", withSources: "🔎 sourced", ratified: "✓ ratified",
           model: "model", voices: "voices", rounds: "rounds", mode: "mode", changes: "position changes", ruling2: "Round ruling", flow: "Each round: the voices debate → 🜂 the red team attacks → ⚖ the moderator rules; at the close, ratification.", veil: "The veil falls: every voice was ", noData: "Template without data. Generate the HTML with: node conclave-render.mjs <data.json> <out.html>", err: "Render error: ",
           status: { full_consensus: "Full consensus", majority_with_dissent: "Majority with dissent", no_consensus: "No consensus" },
@@ -350,7 +368,8 @@
         const real = nodes.filter(Boolean); if (!real.length) return;
         const det = el("div", "detail"); const inner = el("div", "inner"); real.forEach((n) => inner.appendChild(n)); det.appendChild(inner); card.appendChild(det);
         const btn = el("button", "morebtn", L.more);
-        btn.onclick = (e) => { e.stopPropagation(); const open = wrap.classList.toggle("open"); btn.textContent = open ? L.less : L.more; };
+        btn.setAttribute("aria-expanded", "false");
+        btn.onclick = (e) => { e.stopPropagation(); const open = wrap.classList.toggle("open"); btn.textContent = open ? L.less : L.more; btn.setAttribute("aria-expanded", open ? "true" : "false"); };
         card.appendChild(btn);
       }
 
@@ -398,11 +417,33 @@
         if (hasSources) meta.appendChild(el("span", "pill", L.withSources));
         if (d.metrics) { const mp = el("span", "pill"); mp.append("↻ "); mp.appendChild(el("b", null, String(d.metrics.totalChanged))); mp.append(" " + L.changes + " · ⟲ "); mp.appendChild(el("b", null, String(d.metrics.totalRevisionByArgument))); mp.append(" " + L.revByArg); meta.appendChild(mp); }
         m.appendChild(meta);
-        const t = el("div", "tension"); const lab = el("div", "lab"); lab.appendChild(el("span", null, L.convergence)); lab.appendChild(el("span", null, L.divergence)); t.appendChild(lab);
-        const track = el("div", "track"); const mark = el("div", "mark"); track.appendChild(mark); t.appendChild(track); m.appendChild(t);
-        app.appendChild(m); requestAnimationFrame(() => { mark.style.left = tension(d) + "%"; });
+        m.appendChild(buildTldr(d));
+        app.appendChild(m);
       }
-      function tension(d) { let t = 45; if (d.consensus_ratified) t = 12; else if (d.status === "full_consensus") t = 22; else if (d.status === "majority_with_dissent") t = 60; else if (d.status === "no_consensus") t = 85; t += Math.min(18, (d.cruxes ? d.cruxes.length : 0) * 7) + Math.min(14, (d.dissent ? d.dissent.length : 0) * 8); return Math.max(5, Math.min(97, t)); }
+      // TL;DR + orientación arriba del todo: qué es esto + resultado (estado, fiabilidad, banderas, cierre) + ancla al veredicto.
+      // FUERA de STEPS (sin clase `step`) para que el replay no lo vele. Solo campos categóricos por textContent (nunca innerHTML).
+      function buildTldr(d) {
+        const box = el("div", "tldr");
+        box.appendChild(el("p", "orient", L.whatIs + " " + L.readOrder));
+        const res = el("div", "res"); const si = stat(d.status);
+        res.appendChild(el("span", "badge " + si.cls, si.txt));
+        const a = d.verdict_audit;
+        if (a && a.robustness) {
+          const rb = a.robustness === "alta" ? "b-good" : a.robustness === "baja" ? "b-bad" : "b-warn";
+          res.appendChild(el("span", "badge " + rb, L.reliability + " " + ((L.sev && L.sev[a.robustness]) || a.robustness)));
+          const flag = (on, txt) => { if (on) res.appendChild(el("span", "aflag on", "⚠ " + txt)); };
+          flag(a.relies_on_unverified, L.auditUnverified); flag(a.unaddressed_redteam, L.auditRedteam); flag(a.overconfidence_or_herding, L.auditHerding);
+        }
+        const closed = d.consensus_ratified && d.ratification && d.ratification.round != null
+          ? L.ratifiedShort + " " + d.ratification.round
+          : (d.rounds_used ?? "?") + " " + L.rounds + " · " + L.unratifiedShort;
+        res.appendChild(el("span", "closed", closed));
+        box.appendChild(res);
+        const sv = el("button", "see-verdict", L.seeVerdict);
+        sv.onclick = () => { const v = document.querySelector(".verdict"); if (v) v.scrollIntoView({ behavior: "smooth", block: "start" }); };
+        box.appendChild(sv);
+        return box;
+      }
 
       function buildToolbar(d) {
         const bar = el("div", "toolbar anim");
@@ -425,10 +466,13 @@
         const aside = el("aside", "council anim"); aside.appendChild(el("h2", null, L.council));
         (d.participants || []).forEach((p) => {
           const card = el("div", "member"); card.style.setProperty("--c", pc(p.idx)); card.dataset.idx = p.idx;
+          card.setAttribute("role", "button"); card.tabIndex = 0;
           card.appendChild(svgBox(sigil(p.fictionalName, praw(p.idx)), "sigil"));
           const info = el("div"); info.appendChild(el("div", "nm", p.fictionalName)); if (p.style) info.appendChild(el("div", "st", p.style));
           const real = el("div", "real"); real.append(L.believesOnly); real.appendChild(el("b", null, p.trueModel || "?")); info.appendChild(real);
-          card.appendChild(info); card.onclick = () => toggleFocus(p.idx, card); aside.appendChild(card);
+          card.appendChild(info); card.onclick = () => toggleFocus(p.idx, card);
+          card.onkeydown = (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggleFocus(p.idx, card); } };
+          aside.appendChild(card);
         });
         const lg = el("div", "legend");
         lg.innerHTML = '<span class="dot" style="background:var(--good)"></span>' + L.ev.hecho + ' &nbsp; <span class="dot" style="background:var(--warn)"></span>' + L.ev.inferencia + ' &nbsp; <span class="dot" style="background:var(--spec)"></span>' + L.ev["especulación"] + '<br><span style="color:var(--ox)">🜂 ' + L.redteam + '</span> &nbsp; <span style="color:var(--gold-bright)">⚖ ' + L.moderator + '</span><br><span style="opacity:.9">' + L.flow + '</span>';
@@ -525,6 +569,7 @@
         frame.appendChild(el("div", "vk", d.consensus_ratified ? L.rulingRat : L.ruling));
         frame.appendChild(el("h2", null, si.txt));
         frame.appendChild(rich("div", "statement", d.verdict || (d.rationale ? d.rationale : "—")));
+        if (d.verdict_detail) { frame.appendChild(el("div", "lab2 vd-lab", L.detail)); frame.appendChild(rich("div", "vdetail", d.verdict_detail)); }
         const grid = el("div", "grid");
         const col = (title, items, cls) => { if (!Array.isArray(items) || !items.length) return null; const c = el("div", "col " + (cls || "")); c.appendChild(el("h3", null, title)); const ul = el("ul"); items.forEach((it) => ul.appendChild(el("li", null, it))); c.appendChild(ul); return c; };
         [col(L.agreements, d.agreements), col(L.cruxes, (d.cruxes || []).map((c) => c.issue || "")), col(L.dissent, (d.dissent || []).map((x) => (x.model ? x.model + ": " : "") + (x.view || "") + (x.why ? " — " + x.why : "")), "dis")].forEach((c) => c && grid.appendChild(c));
@@ -594,6 +639,7 @@
         out.push("# " + L.title + " — " + si.txt);
         if (d.question) out.push("\n> " + d.question);
         out.push("\n**" + L.verdict + ":** " + String(d.verdict || d.rationale || "—"));
+        if (d.verdict_detail) out.push("\n" + String(d.verdict_detail));
         if (Array.isArray(d.agreements) && d.agreements.length) { out.push("\n## " + L.agreements); d.agreements.forEach((a) => out.push("- " + a)); }
         if (Array.isArray(d.cruxes) && d.cruxes.length) { out.push("\n## " + L.cruxes); d.cruxes.forEach((c) => out.push("- " + (c && c.issue ? c.issue : c))); }
         if (Array.isArray(d.dissent) && d.dissent.length) { out.push("\n## " + L.dissent); d.dissent.forEach((x) => out.push("- " + (x.model ? "**" + x.model + ":** " : "") + (x.view || "") + (x.why ? " — " + x.why : ""))); }
