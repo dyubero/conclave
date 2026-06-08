@@ -59,7 +59,7 @@ const STYLE_SETS = {
 const STYLES = STYLE_SETS[lang] || STYLE_SETS.es
 const PROFILES = [
   { name: 'Atlas-3', style: STYLES[0] },
-  { name: 'Nimbus-LM', style: STYLES[1] },
+  { name: 'ali-10', style: STYLES[1] },
   { name: 'Helix-2', style: STYLES[2] },
   { name: 'Vega-1', style: STYLES[3] },
   { name: 'Solis-4', style: STYLES[4] },

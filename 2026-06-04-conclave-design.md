@@ -65,7 +65,7 @@ monólogo, y la skill no aporta nada.
   Default `Opus 4.8` si no se puede determinar.
 - **Nombres ficticios plausibles** (no marcas reales, para evitar estereotipos
   contaminantes como deferir ante un rival percibido como más fuerte):
-  `Atlas-3`, `Nimbus-LM`, `Helix-2`, `Vega-1`, `Solis-4`. Se asignan los primeros `x`.
+  `Atlas-3`, `ali-10`, `Helix-2`, `Vega-1`, `Solis-4`. Se asignan los primeros `x`.
 - **El mediador también está engañado** (no se le cuenta que todos son el mismo modelo),
   para que valore el acuerdo entre ellos como corroboración independiente.
 - **Instrucción anti-meta** para todos: asumir que los demás son quienes dicen ser, no
@@ -450,7 +450,7 @@ renderizado por-agente de §3.1.
 
 Mejoras incorporadas tras la v1; **sustituyen las lentes-semilla por estilos** y añaden roles/campos:
 
-- **(a) Estilos de casa** — cada identidad ficticia (Atlas-3, Nimbus-LM, Helix-2, Vega-1, Solis-4)
+- **(a) Estilos de casa** — cada identidad ficticia (Atlas-3, ali-10, Helix-2, Vega-1, Solis-4)
   tiene un **estilo cognitivo persistente** (formalista / lateral / empirista / escéptico /
   sintetizador). El estilo se mantiene toda la partida (motor de divergencia); la **postura** sí
   puede converger. `--purist` desactiva los estilos. (Reemplaza el `LENSES` de §4.)
