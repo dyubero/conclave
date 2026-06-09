@@ -1,7 +1,7 @@
 {
   "name": "conclave",
   "description": "Convene a conclave: a multi-agent, same-model, identities-disguised debate-to-consensus to decide hard dilemmas with a more robust answer. Ships cognitive styles, a red team, steelman, evidentiary status, source grounding, ratification, verdict audit, and a self-contained HTML viewer (--ui). Built on the Workflow tool.",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "author": { "name": "dyubero" },
   "homepage": "https://github.com/dyubero/conclave",
   "repository": "https://github.com/dyubero/conclave",

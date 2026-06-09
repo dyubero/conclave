@@ -194,11 +194,35 @@ function liveHtml() {
   if (h.charCodeAt(0) === 0xfeff) h = h.slice(1)
   h = h.replace('const DATA = "__CONCLAVE_DATA__";', 'const DATA = null;')
   h = h.replace('function wireKeys() {', 'function wireKeys() { if (window.__wired) return; window.__wired = true;')
-  const boot = `      function __badge(){ let b=document.getElementById("live-badge"); if(!b){ b=document.createElement("div"); b.id="live-badge"; b.style.cssText="position:fixed;top:10px;right:12px;z-index:80;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:#8fce86;background:rgba(8,6,3,.7);border:1px solid #4a3c25;border-radius:999px;padding:4px 11px"; document.body.appendChild(b);} return b; }
-      function __liveRender(d){ try { const y=window.scrollY; window.__rm=d.realModel||window.__rm||""; app.innerHTML=""; window.__wired=false; render(d); window.scrollTo(0,y); const lv=d._live||{}, p=lv.pending||0, b=__badge(); if(lv.concluded){ b.innerHTML="✦ cónclave cerrado"; b.style.color="var(--gold-bright)"; b.style.borderColor="var(--gold-deep)"; } else { b.style.color="#8fce86"; b.style.borderColor="#4a3c25"; b.innerHTML=(p? "● EN VIVO · "+p+" pensando…" : (lv.waiting? "● esperando cónclave…" : "● EN VIVO")); } } catch(err){ console.error(err); } }
-      fetch("/data").then(r=>r.json()).then(__liveRender).catch(()=>{});
-      const __es=new EventSource("/events"); __es.onmessage=(ev)=>{ try{ __liveRender(JSON.parse(ev.data)); }catch(e){} };`
+  // Retoques para el render incremental: `app` reasignable (se re-apunta a un scratch desconectado al
+  // renderizar) y la cola de render() acotada a `app` (para que .anim y el scrubber caigan en el scratch,
+  // no en los nodos vivos).
+  h = h.replace('const app = document.getElementById("app");', 'let app = document.getElementById("app");')
+  h = h.replace('Array.from(document.querySelectorAll(".step"))', 'Array.from(app.querySelectorAll(".step"))')
+  h = h.replace('const seek = document.getElementById("seek"); if (seek) {', 'const seek = app.querySelector("#seek"); if (seek) {')
+  const boot = `      var __css=document.createElement("style"); __css.textContent="@keyframes conclaveLiveIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}.live-in{animation:conclaveLiveIn .5s ease both}"; document.head.appendChild(__css);
+      function __badge(){ let b=document.getElementById("live-badge"); if(!b){ b=document.createElement("div"); b.id="live-badge"; b.style.cssText="position:fixed;top:10px;right:12px;z-index:80;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:#8fce86;background:rgba(8,6,3,.7);border:1px solid #4a3c25;border-radius:999px;padding:4px 11px"; document.body.appendChild(b);} return b; }
+      // ¿es un contenedor estructural en el que hay que recursar (vs. una unidad que se reemplaza entera)?
+      function __isContainer(n){ return n.nodeType===1 && (n===app || (n.classList && (n.classList.contains("shell")||n.classList.contains("thread")||n.classList.contains("council")))); }
+      // morph por posición: idénticos→se conservan; contenedores→recursión; cualquier otro cambio→reemplazo entero (handlers frescos). Acumula en \`fresh\` lo insertado/reemplazado.
+      function __morph(real, scr, fresh){ var olds=Array.prototype.slice.call(real.children), news=Array.prototype.slice.call(scr.children), i; for(i=0;i<news.length;i++){ var nn=news[i], on=olds[i]; if(!on){ real.appendChild(nn); fresh.push(nn); continue; } if(on.tagName!==nn.tagName){ real.replaceChild(nn,on); fresh.push(nn); continue; } if(on.isEqualNode(nn)) continue; if(__isContainer(on)&&__isContainer(nn)){ __morph(on,nn,fresh); continue; } real.replaceChild(nn,on); fresh.push(nn); } for(i=news.length;i<olds.length;i++) real.removeChild(olds[i]); }
+      // vuelca el estado de interacción global (botones de la barra, expandir-todo, foco) sobre un árbol, para que un cambio de estado no provoque reemplazos y los nodos nuevos lo hereden.
+      function __sync(root){ var eb=root.querySelector("#expbtn"); if(eb){ eb.textContent=allOpen?L.collapseAll:L.expandAll; eb.classList.toggle("is-on",allOpen); } var vb=root.querySelector("#evbtn"); if(vb){ if(EVS[evCycle]){ vb.classList.add("is-on"); vb.textContent="◉ "+evText(EVS[evCycle]); } else { vb.classList.remove("is-on"); vb.textContent=L.evidence; } } var unm=document.body.classList.contains("unmasked"); var rv=root.querySelector("#revbtn"); if(rv){ rv.classList.toggle("is-on",unm); rv.textContent=unm?L.mask:L.unmask; } var pb=root.querySelector("#play"); if(pb) pb.textContent=playing?L.pause:L.play; if(allOpen){ root.querySelectorAll(".entry").forEach(function(en){ var b=en.querySelector(".morebtn"); if(!b)return; en.classList.add("open"); b.textContent=L.less; b.setAttribute("aria-expanded","true"); }); } if(focusIdx!=null){ root.querySelectorAll(".member").forEach(function(m){ m.classList.toggle("sel", m.dataset.idx===String(focusIdx)); }); root.querySelectorAll(".entry").forEach(function(en){ en.classList.toggle("is-focus", en.classList.contains("stmt")&&en.dataset.idx===String(focusIdx)); }); } }
+      function __liveRender(d){ try{ window.__rm=d.realModel||window.__rm||""; var realApp=document.getElementById("app"); var scratch=document.createElement("div"); app=scratch; render(d); app=realApp;
+        // normaliza la entrada escalonada del visor (rompe el isEqualNode al cambiar por índice cada tick) y aplica el estado de interacción
+        scratch.querySelectorAll(".anim").forEach(function(n){ n.classList.remove("anim"); n.style.animationDelay=""; }); __sync(scratch);
+        var y=window.scrollY, fresh=[]; __morph(realApp, scratch, fresh); window.scrollTo(0,y);
+        STEPS=Array.prototype.slice.call(realApp.querySelectorAll(".step")); var sk=realApp.querySelector("#seek"); if(sk) sk.max=String(STEPS.length); setCursor(STEPS.length);
+        fresh.forEach(function(n){ if(n.nodeType===1 && (n.classList.contains("entry")||n.classList.contains("member"))){ n.classList.add("live-in"); setTimeout(function(){ n.classList.remove("live-in"); }, 650); } });
+        var cb=realApp.querySelector("#copybtn"); if(cb) cb.onclick=function(){ copyVerdict(d); };
+        var lv=d._live||{}, p=lv.pending||0, b=__badge(); if(lv.concluded){ b.innerHTML="✦ cónclave cerrado"; b.style.color="var(--gold-bright)"; b.style.borderColor="var(--gold-deep)"; } else { b.style.color="#8fce86"; b.style.borderColor="#4a3c25"; b.innerHTML=(p? "● EN VIVO · "+p+" pensando…" : (lv.waiting? "● esperando cónclave…" : "● EN VIVO")); } } catch(err){ console.error(err); } }
+      fetch("/data").then(function(r){return r.json();}).then(__liveRender).catch(function(){});
+      var __es=new EventSource("/events"); __es.onmessage=function(ev){ try{ __liveRender(JSON.parse(ev.data)); }catch(e){} };`
   h = h.replace(/\n {6}if \(typeof DATA === "string"\) \{[\s\S]*?\n {6}\}\n/, '\n' + boot + '\n')
+  // Aviso si algún replace quirúrgico no enganchó (cambió el visor): la página fallaría en silencio.
+  for (const marker of ['let app =', 'app.querySelectorAll(".step")', 'app.querySelector("#seek")', 'function __morph(', 'const DATA = null;']) {
+    if (!h.includes(marker)) console.warn('⚠️  conclave-live: no se aplicó el retoque «' + marker + '» (¿cambió conclave.viewer.html?)')
+  }
   return h
 }
 const HTML = liveHtml()

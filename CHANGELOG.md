@@ -2,6 +2,11 @@
 
 All notable changes to **conclave** are documented here. The format loosely follows [Keep a Changelog](https://keepachangelog.com/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] — 2026-06-09
+
+### Changed
+- **Live view updates incrementally — no more full DOM rebuild.** `conclave-live.mjs` already streamed over SSE (the browser never reloaded), but each update tore down and rebuilt the entire DOM (`app.innerHTML = ""; render(d)`), causing a flash and discarding any cards the user had expanded or the voice they had focused. The view now renders the new tree off-screen and **morphs** the live DOM: identical units are kept untouched, changed units are replaced wholesale (with fresh handlers), new ones are inserted and stale ones removed. Only what actually changed is touched, so scroll, expanded cards, focus, the evidence filter and the unmask state all survive each tick, entrance animations fire only on new content, and there is no global flash.
+
 ## [1.3.0] — 2026-06-09
 
 ### Changed
