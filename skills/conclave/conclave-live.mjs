@@ -147,11 +147,12 @@ function reconstruct(text, meta) {
   const allRatify = !!(ratification && ratification.votes.length >= x && ratification.votes.every((v) => v.output && v.output.ratifies))
   const finalRatified = !!(m.consensus_reached && allRatify && !auditVeto)
   const grounded = transcript.some((r) => (r || []).some((e) => e.output && Array.isArray(e.output.sources) && e.output.sources.length))
+  const concluded = !!audit // el auditor es el ÚLTIMO paso: si ya resolvió, el cónclave terminó; si no, sigue EN PROCESO
 
   return {
     verdict: m.consensus_statement != null ? m.consensus_statement : null,
     verdict_detail: m.verdict_detail != null && m.verdict_detail !== '' ? m.verdict_detail : null,
-    status: finalRatified ? 'full_consensus' : (m.status || (transcript.length ? 'no_consensus' : null)),
+    status: concluded ? (finalRatified ? 'full_consensus' : (m.status || 'no_consensus')) : (transcript.length ? 'en_proceso' : null),
     agreements: m.points_of_agreement || [], cruxes: m.open_cruxes || [], dissent: m.dissent || [],
     rationale: m.rationale || '', redteam_addressed: typeof m.redteam_addressed === 'boolean' ? m.redteam_addressed : null,
     confidence_note: m.confidence_note || '', consensus_ratified: finalRatified,
@@ -159,7 +160,7 @@ function reconstruct(text, meta) {
     metrics: computeMetrics(transcript), verdict_audit: audit || null,
     lang: meta.lang || 'es', realModel: meta.realModel || 'Opus 4.8', question: meta.question || '',
     transcript, mediations, redteams, ratification, participants: parts,
-    _live: { pending: started.filter((id) => !(id in res)).length, results: Object.keys(res).length, started: started.length, thinking },
+    _live: { pending: started.filter((id) => !(id in res)).length, results: Object.keys(res).length, started: started.length, thinking, concluded },
   }
 }
 function snapshot() {
