@@ -545,3 +545,17 @@ Dos cónclaves (motor + UI) sobre el **código real** (ya en el repo, que los ag
 - **Conservado**: el blur (solo sobre el nombre del modelo), los sigilos, el replay (aterriza desvelado, opt-in).
 
 **Return extra v1.1:** `verdict_detail`; `status`/`consensus_ratified` dependen ahora del veto de auditoría.
+
+---
+
+## 18. v1.2 — Vista EN VIVO (`conclave-live.mjs`, 2026-06-09)
+
+El sandbox del workflow no puede servir una GUI ni escribir incrementalmente, **pero** el runtime de Claude Code escribe un `journal.jsonl` con el resultado estructurado de cada agente según termina (es lo que alimenta el *resume*). `conclave-live.mjs` es un **acompañante** (servidor Node local, no parte del sandbox) que:
+
+- **Tail-ea** el `journal.jsonl` del cónclave activo (auto-detecta el más reciente bajo `~/.claude/projects/<cwd-encoded>/*/subagents/workflows/*/`).
+- **Reconstruye** el debate: clasifica cada `result` por su esquema (debater / equipo-rojo / mediador / ratificación / auditoría) y lo coloca en su ronda y nombre por **orden de lanzamiento** (`started`), aplicando el mismo veto de auditoría que el motor.
+- Sirve el **mismo `conclave.viewer.html`** transformado (DATA por `fetch`/SSE en vez del placeholder estático; `wireKeys` idempotente; re-render con preservación de scroll) por **SSE** en `127.0.0.1:4317`.
+
+Flujo (flag `--live`): el bucle principal escribe un **meta sidecar** (`question`, `lang`, `realModel`, `agents`, `participants` — lo que el journal NO tiene), arranca el servidor `--open` en segundo plano y lanza el cónclave; el navegador se rellena ronda a ronda. Modo `--once` para validar sin servidor. **Validado:** el reconstructor reproduce *exactamente* un debate real desde su journal (mismas rondas, nombres, veredicto, `verdict_detail`, auditoría, ratificación).
+
+**Caveat declarado:** depende del **formato interno** del `journal.jsonl` (no es API pública de Claude Code → una actualización podría romperlo); los nombres se mapean por orden de lanzamiento (correcto con el bucle actual). Es el único punto frágil; el resto del skill no depende de ello.

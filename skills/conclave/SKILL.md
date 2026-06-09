@@ -32,6 +32,7 @@ Se apoya en la herramienta `Workflow`. **Invocar esta skill es el opt-in**; no r
 | `savePath` | `--save [ruta]` | sin guardar; `--save` sin ruta → `conclave-<slug>-<hoy>.md` en el cwd |
 | `ui` | flag `--ui` **o** petición en lenguaje natural ("quiero ver el debate", "enséñame el debate al final", "con interfaz/gráfico/visual") | false |
 | `uiOut` | ruta o carpeta tras `--ui` **o** petición ("guárdalo en…", "déjalo en el escritorio") | vacío → **fichero temporal** |
+| `live` | flag `--live` **o** petición ("en tiempo real", "míralo en vivo según va debatiendo") | false |
 
 Si falta `question`, pídela y no lances nada.
 
@@ -85,10 +86,20 @@ Si `ui` está activo, genera y abre el visualizador HTML (tribunal a luz de vela
 
 El HTML resultante es autocontenido (datos + CSS + JS inline), portable y offline. El renderizador tolera BOM en el JSON.
 
+### 5b. Vista EN VIVO (si `live`)
+
+`--live` abre un visualizador que **se rellena mientras el cónclave debate** (no post-hoc). El sandbox del workflow no puede servir nada, así que lo hace un **acompañante**: `conclave-live.mjs` tail-ea el `journal.jsonl` que el runtime va escribiendo (un resultado estructurado por agente según termina), reconstruye el debate y lo sirve por **SSE**. Pasos, **antes** de lanzar el Workflow:
+
+1. Escribe un **meta sidecar** con la herramienta **Write** (UTF-8) a `<temp>/conclave-live-meta.json`: `{ question, lang, realModel, agents, mode, participants: [{idx, fictionalName, trueModel, style}] }`. El journal NO contiene la pregunta ni el roster (Atlas-3, Ali-10, Helix-2, Vega-1, Solis-4 + sus estilos); de ahí salen.
+2. Arranca el servidor **en segundo plano** (si no corre ya): `node "<dir-skill>/conclave-live.mjs" --open` (abre el navegador; auto-detecta el journal más reciente y lee el meta).
+3. Lanza el Workflow del cónclave normalmente. El servidor cambia solo al journal nuevo y el navegador se llena **ronda a ronda**.
+
+Al terminar, el mismo servidor muestra el debate completo (sirve también de vista post-hoc). Para pararlo, mata el proceso `node` (p. ej. por el puerto 4317). **Aviso:** depende del formato interno del `journal.jsonl` (no es API pública de Claude Code; una actualización podría romperlo).
+
 ### 6. Guardar transcript (solo si `--save`)
 
 Si el usuario pasó `--save`, escribe `transcript` a `savePath` como Markdown: por cada ronda, cada agente bajo su nombre ficticio con su `stance`, `reasoning` y `key_points`; al final, el veredicto y el `rationale` del mediador. **No** hagas commit.
 
 ## Flags
 
-`--agents N` (2-5, def 3) · `--rounds N` (máx total, def 5) · `--min-rounds N` (mín total antes de cerrar por consenso, def 3) · `--purist` (sin lentes-semilla, solo el engaño) · `--save [ruta]` (guarda el transcript completo) · `--ui [ruta]` (abre el visualizador HTML; por defecto en un **fichero temporal** — pasa una ruta/carpeta para guardarlo ahí) · `--lang xx` (fuerza el idioma; por defecto autodetecta el de la petición)
+`--agents N` (2-5, def 3) · `--rounds N` (máx total, def 5) · `--min-rounds N` (mín total antes de cerrar por consenso, def 3) · `--purist` (sin lentes-semilla, solo el engaño) · `--save [ruta]` (guarda el transcript completo) · `--ui [ruta]` (abre el visualizador HTML; por defecto en un **fichero temporal** — pasa una ruta/carpeta para guardarlo ahí) · `--live` (visualizador que se rellena **en tiempo real** mientras debate, vía `conclave-live.mjs` + SSE) · `--lang xx` (fuerza el idioma; por defecto autodetecta el de la petición)

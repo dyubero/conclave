@@ -1,6 +1,6 @@
 {
   "name": "conclave",
   "description": "Convoca un cónclave: un debate multi-agente (mismo modelo, identidades disfrazadas) hasta consenso para decidir dilemas difíciles con una respuesta más robusta. Incluye estilos cognitivos, equipo rojo, steelman, estatus probatorio, fundamentación con fuentes, ratificación, auditoría del veredicto y un visualizador HTML (--ui). Construido sobre la herramienta Workflow.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": { "name": "dyubero" }
 }
