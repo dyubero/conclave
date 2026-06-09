@@ -580,3 +580,23 @@ Elevación estética manteniendo la paleta oro-oscuro a luz de vela, para que «
 Validado: render real capturado en headless (el hero — título, crest, consejo, cards, atmósfera). El visor pesa ~198 KB (autocontenido, con las fuentes incrustadas).
 
 **Caveat declarado:** depende del **formato interno** del `journal.jsonl` (no es API pública de Claude Code → una actualización podría romperlo); los nombres se mapean por orden de lanzamiento (correcto con el bucle actual). Es el único punto frágil; el resto del skill no depende de ello.
+
+---
+
+## 20. v1.4 — Contexto y herramientas para los debaters (meta-cónclave 2026-06-09)
+
+Nuevo meta-cónclave sobre el código real (cwd = repo; los tres debaters **leyeron y citaron `conclave.workflow.mjs` / `SKILL.md` / `conclave-live.mjs` línea a línea** durante las 5 rondas — `grounded:true`, ~80 citas con nº de línea: el cónclave más fundamentado hasta la fecha). Pregunta: cómo dar a los debaters **más contexto y mejores herramientas** sin romper la retro-compatibilidad ni la honestidad. Estado: **mayoría con disidencia** (las tres voces de debate convergen en un núcleo mínimo; el equipo rojo mantiene una objeción alta viva sobre la verificación). Auditoría: robustez **media** (hechos de carga verificados, pero proceso con *herding* sostenido — el panel reconvergía en bloque cada ronda).
+
+**Motor (`conclave.workflow.mjs`):**
+
+- **(a) `args.context` (P1)** — arg opcional `string` (default `''`), parseado con el mismo patrón aditivo que `a.profiles`. El **bucle principal** (único con FS arbitrario por la restricción del sandbox) arma el material y lo pasa; un helper `renderContext()` lo re-emite **verbatim en cada prompt y cada ronda** (debater, equipo rojo, mediador y auditor), enmarcado como *material de referencia* (cítalo si te apoyas en él; declara si es insuficiente / irrelevante / contradictorio). Coste-cero en llamadas `agent()`, sin tocar schema ni `return`. Es la palanca real de «más contexto».
+- **(b) Fundamentación que circula (P3)** — `renderFor` (la vista que cada debater tiene del transcript) ahora incluye los `key_points` con su estatus probatorio y las **Fuentes** de cada peer, no solo stance / razón / reacciones (antes esto solo lo veían `renderFull` → equipo rojo / mediador / auditor). Así un debater puede **corroborar o refutar lo que otro citó de verdad**. Coste-cero, sin tocar schema ni el `classify()` de la vista en vivo.
+
+**Descartado a propósito** (consenso, incluido el equipo rojo, y avalado por la auditoría):
+
+- **`agentType`** — las 6 llamadas `agent()` pasan solo `{label, phase, schema}`; introducir un tipo de agente distinto arriesga la **igualdad-de-modelo**, que es el axioma de des-sesgo del cónclave. Las herramientas (Read / WebSearch / MCP por ToolSearch) ya están disponibles en sesión; si se quisieran usar de forma activa, bastaría nombrarlas en el prompt.
+- **Cualquier métrica o veto de «fundamentación verificada»** (auditor-cotejador, *verified-por-URL*, cablear `relies_on_unverified` en el `auditVeto`, o un `context.includes(source)` en JS). La objeción de severidad alta del equipo rojo quedó **sin refutar**: en un harness *one-shot*, toda garantía determinista de fundamentación es o bien **tautológica** (certifica la presencia literal de material ya dado, no la pertinencia del claim) o bien **inejecutable** (el `return` no transporta el `context` y el workflow corre en background). La honestidad se preserva **no fabricando** una verificación insostenible; `grounded` sigue siendo honesto-pero-falseable y se documenta como tal.
+
+**Doc:** `SKILL.md` gana el paso **§3b** (cuándo y cómo el bucle principal arma `context`), documenta `context` y —arreglando un *drift* preexistente (hallazgo colateral del propio panel)— también `profiles` en la tabla de args, y añade el flag `--context`. `CHANGELOG` → **1.4.0**.
+
+**Return:** sin cambios (el `context` no se devuelve; el bucle ya lo posee). Retro-compatibilidad total: `a.context` y `a.profiles` son `undefined` en toda invocación existente, así que el comportamiento por defecto es idéntico.

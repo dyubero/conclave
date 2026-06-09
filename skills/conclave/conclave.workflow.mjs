@@ -25,6 +25,9 @@ const a =
 const question = typeof a.question === 'string' ? a.question.trim() : ''
 const purist = a.purist === true
 const realModel = typeof a.realModel === 'string' && a.realModel ? a.realModel : 'Opus 4.8'
+// Contexto opcional que arma el BUCLE PRINCIPAL (único con acceso a ficheros arbitrarios) y se
+// re-emite verbatim en cada prompt. Mismo patrón aditivo y retro-compatible que a.profiles.
+const context = typeof a.context === 'string' ? a.context.trim() : ''
 const x = Math.max(2, Math.min(5, Number(a.agents) || 3))
 const maxRounds = Math.max(1, Math.min(8, Number(a.rounds) || 5))
 const minRounds = Math.min(maxRounds, Math.max(2, Number(a.minRounds) || 3))
@@ -218,6 +221,8 @@ function renderFor(selfIdx) {
       const who = e.idx === selfIdx ? `Tú (${e.name})` : e.name
       lines.push(`${who}: ${o.stance}`)
       if (o.reasoning) lines.push(`  Razón: ${o.reasoning}`)
+      const kp = kpText(o.key_points)
+      if (kp) lines.push('  Puntos: ' + kp)
       const fl = []
       if (o.changed_position) fl.push('↻ cambió de postura')
       if (typeof o.confidence === 'number') fl.push(`confianza ${o.confidence.toFixed(2)}`)
@@ -225,6 +230,7 @@ function renderFor(selfIdx) {
       if (Array.isArray(o.responses_to_others) && o.responses_to_others.length) {
         lines.push('  Reacciones → ' + o.responses_to_others.map((rr) => `${rr.model}: ${rr.agreement}`).join(', '))
       }
+      if (Array.isArray(o.sources) && o.sources.length) lines.push('  Fuentes: ' + o.sources.map((s) => clip(s.claim, 60) + ' → ' + s.source).join(' | '))
     }
     const rt = redteams.find((t) => t.round === r + 1)
     if (rt) lines.push(`🔴 Equipo rojo: ${rt.output.strongest_objection} (severidad ${rt.output.severity})`)
@@ -257,6 +263,11 @@ function renderFull() {
   return lines.join('\n')
 }
 
+function renderContext() {
+  if (!context) return ''
+  return '\nCONTEXTO APORTADO (material de referencia que adjunta el organizador para fundamentar el análisis; trátalo como evidencia disponible: cítalo cuando te apoyes en él, y di explícitamente si es insuficiente, irrelevante o si contradice tu postura — no inventes más allá de lo que sostenga):\n' + context
+}
+
 // ---------- Prompts ----------
 function debaterPrompt(selfIdx, round) {
   const me = roster[selfIdx]
@@ -283,6 +294,7 @@ function debaterPrompt(selfIdx, round) {
     p.push(`Antes de rechazar la postura de otro, reformúlala en su versión más fuerte (steelman) y solo entonces objeta. Declara también la objeción más fuerte a TU propia postura.`)
   }
   p.push(`\nPregunta a resolver:\n${question}`)
+  if (context) p.push(renderContext())
   if (round > 1) {
     p.push(`\nTranscript hasta ahora (tu vista):\n${renderFor(selfIdx)}`)
     if (lastMediation && lastMediation.guidance_next_round) {
@@ -309,6 +321,7 @@ function redteamPrompt(round) {
       `tu único trabajo es IMPEDIR un consenso prematuro o superficial. No especules sobre el montaje.`,
   )
   p.push(`\nPregunta:\n${question}`)
+  if (context) p.push(renderContext())
   p.push(`\nTranscript completo (hasta la ronda ${round}):\n${renderFull()}`)
   p.push(
     `\nVIGILA EL ECO: si en las reacciones casi nadie marca 'disagree' y casi todo es 'agree/partial', sospecha que el "acuerdo" es CORTESÍA o eco del mismo patrón de razonamiento (todos son la misma arquitectura), no corroboración independiente. Si lo detectas, atácalo explícitamente como modo de fallo (convergencia-por-eco) y dale severidad acorde.`,
@@ -328,6 +341,7 @@ function mediatorPrompt(round, isLast, canConclude) {
       `No defiendes ninguna postura propia. Distingue el consenso GENUINO del acuerdo de fachada. No especules sobre el montaje.`,
   )
   p.push(`\nPregunta:\n${question}`)
+  if (context) p.push(renderContext())
   p.push(`\nTranscript completo del debate (hasta la ronda ${round}):\n${renderFull()}`)
   const rt = redteams[redteams.length - 1]
   if (rt) {
@@ -374,6 +388,7 @@ function auditPrompt() {
       `Tu único trabajo es estresar el veredicto de un panel de modelos frontera (${names.join(', ')}) y detectar si descansa sobre cimientos débiles. No especules sobre el montaje.`,
   )
   p.push(`\nPregunta:\n${question}`)
+  if (context) p.push(renderContext())
   p.push(`\nVeredicto propuesto (estado ${med.status || 'desconocido'}):\n${med.consensus_statement || med.rationale || '(sin veredicto redactado)'}`)
   p.push(`\nTranscript completo del debate:\n${renderFull()}`)
   const rt = redteams[redteams.length - 1]

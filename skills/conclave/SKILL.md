@@ -33,6 +33,8 @@ It runs on the `Workflow` tool. **Invoking this skill is the opt-in**; it needs 
 | `ui` | `--ui` flag **or** natural-language request ("I want to see the debate", "show me the debate at the end", "with a UI/chart/visual") | false |
 | `uiOut` | path or folder after `--ui` **or** a request ("save it in…", "put it on the desktop") | empty → **temp file** |
 | `live` | `--live` flag **or** request ("in real time", "watch it live as it debates") | false |
+| `context` | natural-language attach ("ground it on these files / this doc", "take X into account") **or** `--context <path\|glob>`; the **main loop** reads the source(s) and assembles the bundle (see §3b) | empty (no extra context) |
+| `profiles` | advanced / programmatic only (`args.profiles`: array of `{name, style}` to override the default roster); no user-facing flag | built-in roster (Atlas-3, Ali-10, Helix-2, Vega-1, Solis-4) |
 
 If `question` is missing, ask for it and launch nothing.
 
@@ -45,18 +47,29 @@ If `question` is missing, ask for it and launch nothing.
 Call the `Workflow` tool with:
 
 - `scriptPath`: the absolute path of `conclave.workflow.mjs`, which sits **next to this `SKILL.md`**. **Do not hardcode a machine path:** take the **skill base directory that Claude Code shows when it loads the skill** (the `Base directory for this skill: …` line) and append `/conclave.workflow.mjs`. That way it works the same installed as a personal skill, a project skill, or a plugin (where the base is `~/.claude/plugins/cache/…`).
-- `args`: `{ question, agents, rounds, minRounds, purist, realModel, lang }`
+- `args`: `{ question, agents, rounds, minRounds, purist, realModel, lang, context }` — `context` is optional (see §3b); `profiles` (custom identities) is also accepted.
 
 Example:
 
 ```
 Workflow({
   scriptPath: "<SKILL-BASE-DIRECTORY>/conclave.workflow.mjs",
-  args: { question: "<user's dilemma>", agents: 3, rounds: 5, minRounds: 3, purist: false, realModel: "Opus 4.8", lang: "es" }
+  args: { question: "<user's dilemma>", agents: 3, rounds: 5, minRounds: 3, purist: false, realModel: "Opus 4.8", lang: "es", context: "" /* optional reference material — see §3b */ }
 })
 ```
 
 The workflow runs in the background; you'll get a notification when it finishes with its return value.
+
+### 3b. Assemble `context` (optional, high-leverage)
+
+The debaters only ever see the `question` text + the running transcript — the workflow sandbox can't read project files. **You (the main loop) are the only actor with arbitrary file access**, so when the dilemma is about concrete material — a codebase, a design doc, data, a spec, prior decisions — *read that material yourself and pass it as `args.context`* (a plain string). The workflow re-emits it **verbatim into every role's prompt, every round**, so debaters argue from real evidence and cite it (this is what makes `grounded` light up honestly), and the auditor sees the same material it judges against.
+
+Guidance:
+
+- **When:** the user attaches files/paths, names a codebase/document, or the question is inherently about specific artifacts. **Skip** it for abstract dilemmas (it adds nothing and costs tokens).
+- **Curate, don't dump:** include the *relevant* excerpts, each labelled with its `path:line` so debaters can cite precisely. It is re-sent every round to every agent, so cost ≈ `chars × agents × rounds` — keep it tight (focused excerpts, not whole repos).
+- **Honesty preserved:** `context` is reference material, not a verification guarantee. Debaters are told to cite it when they lean on it and to say so if it's insufficient, irrelevant, or contradicts them. There is deliberately **no** automatic "grounding-verified" metric — a one-shot harness can't honestly guarantee one.
+- **How:** populate it on `--context <path|glob>` or a natural-language attach request; otherwise assemble it proactively whenever it would make the debate concrete. Use **Read**/**Grep** to gather the material, then pass the assembled string as `args.context`.
 
 ### 4. Present the result (verdict + reasoning)
 
@@ -102,4 +115,4 @@ If the user passed `--save`, write `transcript` to `savePath` as Markdown: for e
 
 ## Flags
 
-`--agents N` (2-5, def 3) · `--rounds N` (max total, def 5) · `--min-rounds N` (min total before closing by consensus, def 3) · `--purist` (no seed-lenses, deception only) · `--save [path]` (saves the full transcript) · `--ui [path]` (opens the HTML viewer; defaults to a **temp file** — pass a path/folder to save it there) · `--live` (viewer that fills in **in real time** while debating, via `conclave-live.mjs` + SSE) · `--lang xx` (forces the language; auto-detects the request's language by default)
+`--agents N` (2-5, def 3) · `--rounds N` (max total, def 5) · `--min-rounds N` (min total before closing by consensus, def 3) · `--purist` (no seed-lenses, deception only) · `--save [path]` (saves the full transcript) · `--ui [path]` (opens the HTML viewer; defaults to a **temp file** — pass a path/folder to save it there) · `--live` (viewer that fills in **in real time** while debating, via `conclave-live.mjs` + SSE) · `--lang xx` (forces the language; auto-detects the request's language by default) · `--context <path|glob>` (the main loop reads the file(s) and injects them as `args.context` reference material — see §3b)

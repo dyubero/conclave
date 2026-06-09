@@ -4,8 +4,19 @@ All notable changes to **conclave** are documented here. The format loosely foll
 
 ## [1.4.0] — 2026-06-09
 
+### Added
+- **`args.context` — feed reference material into the debate.** An optional string that the **main loop** assembles (it's the only actor with arbitrary file access) and the workflow re-emits *verbatim* into every role's prompt each round, so debaters reason from — and cite — real evidence instead of the question text alone. The auditor sees the same material it judges against. Retro-compatible (same additive pattern as `args.profiles`); zero extra `agent()` calls.
+- **`--context <path|glob>`** flag + natural-language triggers ("ground it on these files", "take this doc into account") that tell the main loop to read the source(s) and build the bundle (`SKILL.md` §3b).
+
 ### Changed
 - **Live view updates incrementally — no more full DOM rebuild.** `conclave-live.mjs` already streamed over SSE (the browser never reloaded), but each update tore down and rebuilt the entire DOM (`app.innerHTML = ""; render(d)`), causing a flash and discarding any cards the user had expanded or the voice they had focused. The view now renders the new tree off-screen and **morphs** the live DOM: identical units are kept untouched, changed units are replaced wholesale (with fresh handlers), new ones are inserted and stale ones removed. Only what actually changed is touched, so scroll, expanded cards, focus, the evidence filter and the unmask state all survive each tick, entrance animations fire only on new content, and there is no global flash.
+- **Evidence now circulates between debaters.** Each debater's view of the transcript (`renderFor`) now includes peers' `key_points` status and **sources**, not just stance/reasoning — so a debater can corroborate or refute what others actually cited (previously only the red team / mediator / auditor's `renderFull` view carried this).
+
+### Fixed
+- **Docs drift:** documented `args.profiles` in `SKILL.md` (the args table omitted it even though the engine reads it), alongside the new `args.context`.
+
+### Deliberately out of scope
+Decided by a grounded meta-conclave that read and cited the engine line-by-line (status: majority with dissent): **no** `agentType` override (it would risk the same-model axiom that de-biases the debate) and **no** new deterministic "grounding-verified" metric or veto — the red team established, unrefuted, that such a guarantee is tautological or unexecutable in a one-shot harness, so honesty is preserved by *not* fabricating verification.
 
 ## [1.3.0] — 2026-06-09
 
