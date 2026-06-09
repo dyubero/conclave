@@ -75,6 +75,31 @@ function computeMetrics(history) {
   })
   return { perRound, totalChanged: perRound.reduce((s, v) => s + v.changed, 0), totalRevisionByArgument: perRound.reduce((s, v) => s + v.revisionByArgument, 0), note: 'Proxy de proceso.' }
 }
+// Replica el bucle del cónclave para asignar rol/ronda/idx a CADA agente lanzado (resuelto o EN VUELO).
+// Para resueltos el resultado real manda; para en-vuelo es la mejor estimación (se autocorrige al resolver).
+function assignSlots(started, res, x) {
+  const slots = []
+  let i = 0, round = 1
+  while (i < started.length) {
+    for (let k = 0; k < x && i < started.length; k++) slots.push({ id: started[i++], role: 'debater', round, idx: k })
+    if (round >= 2) {
+      if (i < started.length) slots.push({ id: started[i++], role: 'redteam', round })
+      let medId = null
+      if (i < started.length) { medId = started[i]; slots.push({ id: started[i++], role: 'mediator', round }) }
+      const med = medId ? res[medId] : null
+      if (med && med.consensus_reached) for (let k = 0; k < x && i < started.length; k++) slots.push({ id: started[i++], role: 'ratify', round, idx: k })
+    }
+    round++
+  }
+  // El auditor es el agente FINAL tras el bucle: un 'debater idx 0' huérfano (sin compañeros) o con esquema de auditoría.
+  const last = slots[slots.length - 1]
+  if (last) {
+    const lr = res[last.id], prev = slots[slots.length - 2]
+    const lone = last.role === 'debater' && last.idx === 0 && !(prev && prev.role === 'debater' && prev.round === last.round)
+    if ((lr && classify(lr) === 'audit') || (!lr && lone)) last.role = 'audit'
+  }
+  return slots
+}
 function reconstruct(text, meta) {
   const started = [], res = {}
   for (const ln of text.split('\n')) {
@@ -83,11 +108,6 @@ function reconstruct(text, meta) {
     if (e.type === 'started' && e.agentId) { if (!started.includes(e.agentId)) started.push(e.agentId) }
     else if (e.type === 'result' && e.agentId) res[e.agentId] = e.result
   }
-  const ord = (a) => started.indexOf(a)
-  const byRole = { debater: [], redteam: [], mediator: [], ratify: [], audit: [] }
-  for (const id of Object.keys(res)) { const role = classify(res[id]); if (role) byRole[role].push(id) }
-  for (const k in byRole) byRole[k].sort((a, b) => ord(a) - ord(b))
-
   const x = Math.max(1, Number(meta.agents) || 3)
   const DEF = ['Atlas-3', 'Ali-10', 'Helix-2', 'Vega-1', 'Solis-4']
   const parts = (Array.isArray(meta.participants) && meta.participants.length)
@@ -95,22 +115,38 @@ function reconstruct(text, meta) {
     : Array.from({ length: x }, (_, i) => ({ idx: i, fictionalName: DEF[i] || 'Voz-' + (i + 1), trueModel: meta.realModel || 'Opus 4.8', style: null }))
   const nameAt = (i) => (parts[i] && parts[i].fictionalName) || 'Voz-' + (i + 1)
 
-  const transcript = []
-  byRole.debater.forEach((id, i) => { const round = Math.floor(i / x), idx = i % x; if (!transcript[round]) transcript[round] = []; transcript[round].push({ idx, name: nameAt(idx), output: res[id] }) })
-  const redteams = byRole.redteam.map((id, i) => ({ round: i + 2, output: res[id] }))
-  const mediations = byRole.mediator.map((id, i) => ({ round: i + 2, output: res[id] }))
-  let ratification = null
-  if (byRole.ratify.length) {
-    const lastMed = mediations.length ? mediations[mediations.length - 1].output : {}
-    ratification = { round: mediations.length ? mediations[mediations.length - 1].round : transcript.length, statement: lastMed.consensus_statement || null, votes: byRole.ratify.map((id, i) => ({ name: nameAt(i), output: res[id] })) }
+  const slots = assignSlots(started, res, x)
+  const transcript = [], redteams = [], mediations = [], thinking = []
+  let ratification = null, audit = null
+  for (const s of slots) {
+    const r = res[s.id], pend = !r
+    if (s.role === 'debater') {
+      const ri = s.round - 1; if (!transcript[ri]) transcript[ri] = []
+      transcript[ri][s.idx] = { idx: s.idx, name: nameAt(s.idx), output: r || {}, thinking: pend }
+      if (pend) thinking.push({ role: 'debater', round: s.round, idx: s.idx, name: nameAt(s.idx) })
+    } else if (s.role === 'redteam') {
+      redteams.push({ round: s.round, output: r || {}, thinking: pend }); if (pend) thinking.push({ role: 'redteam', round: s.round })
+    } else if (s.role === 'mediator') {
+      mediations.push({ round: s.round, output: r || {}, thinking: pend }); if (pend) thinking.push({ role: 'mediator', round: s.round })
+    } else if (s.role === 'ratify') {
+      if (!ratification) ratification = { round: s.round, statement: null, votes: [] }
+      ratification.votes[s.idx] = { name: nameAt(s.idx), output: r || {}, thinking: pend }
+      if (pend) thinking.push({ role: 'ratify', round: s.round, idx: s.idx, name: nameAt(s.idx) })
+    } else if (s.role === 'audit') {
+      if (r) audit = r; else thinking.push({ role: 'audit' })
+    }
   }
-  const audit = byRole.audit.length ? res[byRole.audit[byRole.audit.length - 1]] : null
-  const m = mediations.length ? mediations[mediations.length - 1].output : {}
+  // rellena cualquier hueco de array (idx que aún no apareció) con placeholder "pensando"
+  for (const arr of transcript) if (arr) for (let k = 0; k < x; k++) if (!arr[k]) arr[k] = { idx: k, name: nameAt(k), output: {}, thinking: true }
+  if (ratification) for (let k = 0; k < ratification.votes.length; k++) if (!ratification.votes[k]) ratification.votes[k] = { name: nameAt(k), output: {}, thinking: true }
+
+  const resolvedMeds = mediations.filter((md) => !md.thinking && md.output && md.output.consensus_reached !== undefined)
+  const m = resolvedMeds.length ? resolvedMeds[resolvedMeds.length - 1].output : {}
+  if (ratification) ratification.statement = m.consensus_statement || ratification.statement || null
   const auditVeto = !!(audit && (audit.robustness === 'baja' || audit.unaddressed_redteam))
   const allRatify = !!(ratification && ratification.votes.length >= x && ratification.votes.every((v) => v.output && v.output.ratifies))
   const finalRatified = !!(m.consensus_reached && allRatify && !auditVeto)
   const grounded = transcript.some((r) => (r || []).some((e) => e.output && Array.isArray(e.output.sources) && e.output.sources.length))
-  const pending = started.filter((id) => !(id in res)).length
 
   return {
     verdict: m.consensus_statement != null ? m.consensus_statement : null,
@@ -123,14 +159,14 @@ function reconstruct(text, meta) {
     metrics: computeMetrics(transcript), verdict_audit: audit || null,
     lang: meta.lang || 'es', realModel: meta.realModel || 'Opus 4.8', question: meta.question || '',
     transcript, mediations, redteams, ratification, participants: parts,
-    _live: { pending, results: Object.keys(res).length, started: started.length },
+    _live: { pending: started.filter((id) => !(id in res)).length, results: Object.keys(res).length, started: started.length, thinking },
   }
 }
 function snapshot() {
   const j = findJournal()
   const meta = readMeta()
   if (!j) return { ...reconstruct('', meta), _live: { pending: 0, results: 0, started: 0, waiting: true } }
-  let text = ''; try { text = readFileSync(j, 'utf8') } catch {}
+  let text = ''; try { text = readFileSync(j, 'utf8'); if (text.charCodeAt(0) === 0xfeff) text = text.slice(1) } catch {}
   return reconstruct(text, meta)
 }
 
@@ -146,6 +182,10 @@ if (ONCE) {
   L('ratification:', d.ratification ? d.ratification.votes.map((v) => v.name + (v.output.ratifies ? '✓' : '✗')).join(' ') : '(no)')
   process.exit(0)
 }
+
+// ---------- modo --dump: escribe el JSON reconstruido y sale (para tests) ----------
+const DUMP = flag('--dump', null)
+if (typeof DUMP === 'string') { writeFileSync(DUMP, JSON.stringify(snapshot()), 'utf8'); console.log('dump →', DUMP); process.exit(0) }
 
 // ---------- servidor + SSE ----------
 function liveHtml() {

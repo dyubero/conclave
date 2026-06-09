@@ -214,7 +214,19 @@
         .council h2 { width: 100%; } .member { flex: 1 1 220px; } .legend { flex: 1 1 100%; }
         .thread::before { left: 18px; } .entry { margin-left: 46px; } .round-mark .orb { width: 40px; height: 40px; } .verdict .grid { grid-template-columns: 1fr; }
       }
-      @media (prefers-reduced-motion: reduce) { .glow, .member.pulse .sigil { animation: none; } .anim { animation: none; opacity: 1; } html { scroll-behavior: auto; } .detail { transition: none; } }
+      @media (prefers-reduced-motion: reduce) { .glow, .member.pulse .sigil, .ld, .member .bubble { animation: none !important; } .anim { animation: none; opacity: 1; } html { scroll-behavior: auto; } .detail { transition: none; } }
+      /* "pensando" (vista en vivo): spinner en la card de la derecha + bocadillo en el consejo de la izquierda */
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .ld { display: inline-block; width: 13px; height: 13px; border: 2px solid var(--line); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; }
+      .entry.think .card { border-style: dashed; }
+      .entry.think .lbl { color: var(--faint); font-style: italic; font-size: 15px; }
+      .entry.think .lbl .ld { margin-right: 9px; }
+      @keyframes bubble-pop { 0%,100%{ transform: translateY(0); opacity: .65; } 50%{ transform: translateY(-2px); opacity: 1; } }
+      .member .bubble { position: absolute; top: 6px; right: 8px; font-size: 14px; animation: bubble-pop 1.4s ease-in-out infinite; }
+      .member.think { border-color: var(--c); box-shadow: 0 0 0 1px var(--c) inset; }
+      .council-live { font-family: var(--mono); font-size: 11px; color: var(--good); letter-spacing: .4px; display: flex; flex-direction: column; gap: 5px; border: 1px dashed var(--line-soft); border-radius: 5px; padding: 8px 11px; }
+      .council-live span .ld { width: 10px; height: 10px; margin-right: 7px; }
+      @media print { .ld, .member .bubble, .council-live { display: none !important; } }
       /* impresión / PDF: tema claro, sin cromo interactivo, todo desplegado y desvelado */
       @media print {
         :root { --bg: #fff; --ink: #fff; --bg-2: #fff; --surface: #fbf8f1; --surface-2: #f3eede; --line: #c9bb98; --line-soft: #ddd2b3; --text: #1b1509; --vellum: #1b1509; --muted: #4a3f22; --faint: #6a5c36; }
@@ -252,7 +264,7 @@
           play: "▶ Reproducir", pause: "⏸ Pausa", evidence: "◐ Evidencia", unmask: "🜔 Desvelar", mask: "🜔 Velar", expandAll: "⤢ Expandir", collapseAll: "⤡ Colapsar",
           help: "? Ayuda", helpTitle: "Atajos de teclado", copyVerdict: "⧉ Copiar veredicto", copied: "Veredicto copiado al portapapeles", before: "Antes", audit: "Auditoría del veredicto", robustnessLbl: "robustez", auditUnverified: "afirmaciones no verificadas", auditRedteam: "objeción del equipo rojo viva", auditHerding: "sobreconfianza / herding", revByArg: "revisión por argumento",
           keys: [["Espacio", "reproducir / pausa"], ["← →", "paso a paso"], ["R", "desvelar identidades"], ["E", "filtro por evidencia"], ["A", "expandir / colapsar"], ["?", "esta ayuda"]],
-          whatIs: "Un cónclave: varias voces —el mismo modelo disfrazado de modelos rivales para des-sesgar el debate— discuten hasta un veredicto.", readOrder: "De arriba abajo: el consejo · el debate por rondas · el veredicto sellado.", reliability: "fiabilidad", seeVerdict: "Ver el veredicto ↓", ratifiedShort: "ratificado en ronda", unratifiedShort: "sin ratificar",
+          whatIs: "Un cónclave: varias voces —el mismo modelo disfrazado de modelos rivales para des-sesgar el debate— discuten hasta un veredicto.", readOrder: "De arriba abajo: el consejo · el debate por rondas · el veredicto sellado.", reliability: "fiabilidad", seeVerdict: "Ver el veredicto ↓", ratifiedShort: "ratificado en ronda", unratifiedShort: "sin ratificar", thinking: "pensando…", auditing: "auditando el veredicto…",
           more: "ver más", less: "ver menos", convergence: "convergencia", divergence: "divergencia", withSources: "🔎 con fuentes", ratified: "✓ ratificado",
           model: "modelo", voices: "voces", rounds: "rondas", mode: "modo", changes: "cambios de postura", ruling2: "Dictamen de la ronda", flow: "Cada ronda: las voces debaten → 🜂 el equipo rojo ataca → ⚖ el mediador dictamina; al cierre, ratificación.", veil: "El velo cae: todas las voces eran ", noData: "Plantilla sin datos. Genera el HTML con: node conclave-render.mjs <data.json> <salida.html>", err: "Error al renderizar: ",
           status: { full_consensus: "Consenso pleno", majority_with_dissent: "Mayoría con disidencia", no_consensus: "Sin consenso" },
@@ -267,7 +279,7 @@
           play: "▶ Play", pause: "⏸ Pause", evidence: "◐ Evidence", unmask: "🜔 Unmask", mask: "🜔 Mask", expandAll: "⤢ Expand", collapseAll: "⤡ Collapse",
           help: "? Help", helpTitle: "Keyboard shortcuts", copyVerdict: "⧉ Copy verdict", copied: "Verdict copied to clipboard", before: "Before", audit: "Verdict audit", robustnessLbl: "robustness", auditUnverified: "unverified claims", auditRedteam: "live red-team objection", auditHerding: "overconfidence / herding", revByArg: "revision by argument",
           keys: [["Space", "play / pause"], ["← →", "step"], ["R", "unmask identities"], ["E", "evidence filter"], ["A", "expand / collapse"], ["?", "this help"]],
-          whatIs: "A conclave: several voices —the same model disguised as rival models to de-bias the debate— argue to a verdict.", readOrder: "Top to bottom: the council · the round-by-round debate · the sealed verdict.", reliability: "reliability", seeVerdict: "See the verdict ↓", ratifiedShort: "ratified in round", unratifiedShort: "unratified",
+          whatIs: "A conclave: several voices —the same model disguised as rival models to de-bias the debate— argue to a verdict.", readOrder: "Top to bottom: the council · the round-by-round debate · the sealed verdict.", reliability: "reliability", seeVerdict: "See the verdict ↓", ratifiedShort: "ratified in round", unratifiedShort: "unratified", thinking: "thinking…", auditing: "auditing the verdict…",
           more: "show more", less: "show less", convergence: "convergence", divergence: "divergence", withSources: "🔎 sourced", ratified: "✓ ratified",
           model: "model", voices: "voices", rounds: "rounds", mode: "mode", changes: "position changes", ruling2: "Round ruling", flow: "Each round: the voices debate → 🜂 the red team attacks → ⚖ the moderator rules; at the close, ratification.", veil: "The veil falls: every voice was ", noData: "Template without data. Generate the HTML with: node conclave-render.mjs <data.json> <out.html>", err: "Render error: ",
           status: { full_consensus: "Full consensus", majority_with_dissent: "Majority with dissent", no_consensus: "No consensus" },
@@ -464,9 +476,11 @@
 
       function buildCouncil(d) {
         const aside = el("aside", "council anim"); aside.appendChild(el("h2", null, L.council));
+        const th = (d._live && d._live.thinking) || []; const thinkDeb = new Set(th.filter((t) => t.role === "debater").map((t) => t.idx));
         (d.participants || []).forEach((p) => {
           const card = el("div", "member"); card.style.setProperty("--c", pc(p.idx)); card.dataset.idx = p.idx;
           card.setAttribute("role", "button"); card.tabIndex = 0;
+          if (thinkDeb.has(p.idx)) { card.classList.add("think"); card.appendChild(el("span", "bubble", "💭")); }
           card.appendChild(svgBox(sigil(p.fictionalName, praw(p.idx)), "sigil"));
           const info = el("div"); info.appendChild(el("div", "nm", p.fictionalName)); if (p.style) info.appendChild(el("div", "st", p.style));
           const real = el("div", "real"); real.append(L.believesOnly); real.appendChild(el("b", null, p.trueModel || "?")); info.appendChild(real);
@@ -474,6 +488,12 @@
           card.onkeydown = (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggleFocus(p.idx, card); } };
           aside.appendChild(card);
         });
+        const liveRoles = [];
+        if (th.some((t) => t.role === "redteam")) liveRoles.push("🜂 " + L.redteam + " · " + L.thinking);
+        if (th.some((t) => t.role === "mediator")) liveRoles.push("⚖ " + L.moderator + " · " + L.thinking);
+        if (th.some((t) => t.role === "ratify")) liveRoles.push("🗳 " + L.ratification + " · " + L.thinking);
+        if (th.some((t) => t.role === "audit")) liveRoles.push("🔎 " + L.auditing);
+        if (liveRoles.length) { const cl = el("div", "council-live"); liveRoles.forEach((tx) => { const s = el("span"); s.appendChild(el("span", "ld")); s.append(" " + tx); cl.appendChild(s); }); aside.appendChild(cl); }
         const lg = el("div", "legend");
         lg.innerHTML = '<span class="dot" style="background:var(--good)"></span>' + L.ev.hecho + ' &nbsp; <span class="dot" style="background:var(--warn)"></span>' + L.ev.inferencia + ' &nbsp; <span class="dot" style="background:var(--spec)"></span>' + L.ev["especulación"] + '<br><span style="color:var(--ox)">🜂 ' + L.redteam + '</span> &nbsp; <span style="color:var(--gold-bright)">⚖ ' + L.moderator + '</span><br><span style="opacity:.9">' + L.flow + '</span>';
         aside.appendChild(lg); return aside;
@@ -497,8 +517,8 @@
           main.appendChild(sum);
           const prevEntries = i > 0 ? (d.transcript[i - 1] || []) : [];
           (entries || []).forEach((e) => { const pe = prevEntries.find((p) => p.idx === e.idx); main.appendChild(stmtEntry(d, e, round, pe && pe.output ? pe.output.stance : null)); });
-          if (r) main.appendChild(redteamEntry(r.output, round));
-          if (md) main.appendChild(medEntry(md.output, round));
+          if (r) main.appendChild(redteamEntry(r.output, round, r.thinking));
+          if (md) main.appendChild(medEntry(md.output, round, md.thinking));
         });
         if (d.ratification) main.appendChild(ratifyEntry(d.ratification));
         return main;
@@ -508,6 +528,7 @@
         const o = e.output || {}; const wrap = el("div", "entry stmt step"); wrap.dataset.idx = e.idx;
         const card = el("div", "card"); card.style.setProperty("--c", pc(e.idx));
         const head = el("div", "head"); head.appendChild(svgBox(sigil(e.name, praw(e.idx)), "mini")); head.appendChild(el("span", "who", e.name));
+        if (e.thinking) { wrap.classList.add("think"); card.appendChild(head); const lab = el("div", "lbl"); lab.appendChild(el("span", "ld")); lab.append(" " + L.thinking); card.appendChild(lab); wrap.appendChild(card); return wrap; }
         const tags = el("div", "tags"); if (o.changed_position) tags.appendChild(el("span", "tag chg", L.changed));
         if (typeof o.confidence === "number") { const c = el("span", "tag conf"); c.append(L.conf + " "); const bar = el("span", "bar"); const i = el("i"); i.style.width = Math.round(o.confidence * 100) + "%"; bar.appendChild(i); c.appendChild(bar); tags.appendChild(c); }
         head.appendChild(tags); card.appendChild(head);
@@ -531,18 +552,20 @@
         addDetail(wrap, card, det); wrap.appendChild(card); return wrap;
       }
 
-      function redteamEntry(o, round) {
+      function redteamEntry(o, round, thinking) {
         o = o || {}; const wrap = el("div", "entry redteam step"); const card = el("div", "card");
         const head = el("div", "head"); head.appendChild(svgBox(starGlyph("var(--ox)"), "mini")); head.appendChild(el("span", "who", L.redteam));
+        if (thinking) { wrap.classList.add("think"); card.appendChild(head); const lab = el("div", "lbl"); lab.appendChild(el("span", "ld")); lab.append(" " + L.thinking); card.appendChild(lab); wrap.appendChild(card); return wrap; }
         const tags = el("div", "tags"); if (o.severity) tags.appendChild(el("span", "badge " + (SEV[o.severity] || "b-warn"), L.severity + " " + ((L.sev && L.sev[o.severity]) || o.severity))); if (o.unanswered) tags.appendChild(el("span", "badge b-bad", L.unanswered)); head.appendChild(tags); card.appendChild(head);
         if (o.strongest_objection) card.appendChild(rich("div", "obj", o.strongest_objection));
         const det = []; if (o.target_position) det.push(el("div", "tgt", L.targets + " " + o.target_position)); if (o.failure_mode) det.push(rich("div", "fm", L.failmode + " " + o.failure_mode));
         addDetail(wrap, card, det); wrap.appendChild(card); return wrap;
       }
 
-      function medEntry(o, round) {
+      function medEntry(o, round, thinking) {
         o = o || {}; const wrap = el("div", "entry mediator step"); const card = el("div", "card");
         const head = el("div", "head"); head.appendChild(svgBox(starGlyph("var(--gold)"), "mini")); head.appendChild(el("span", "who", L.moderator));
+        if (thinking) { wrap.classList.add("think"); card.appendChild(head); const lab = el("div", "lbl"); lab.appendChild(el("span", "ld")); lab.append(" " + L.thinking); card.appendChild(lab); wrap.appendChild(card); return wrap; }
         const tags = el("div", "tags"); const si = stat(o.status); tags.appendChild(el("span", "badge " + si.cls, si.txt));
         if (o.redteam_addressed === true) tags.appendChild(el("span", "tag", "🜂 " + L.addressed)); if (o.redteam_addressed === false) tags.appendChild(el("span", "tag", "🜂 " + L.pending)); head.appendChild(tags); card.appendChild(head);
         card.appendChild(el("div", "lab2", L.ruling2));
@@ -559,7 +582,7 @@
         const head = el("div", "head"); head.appendChild(el("span", "who", "🗳 " + L.ratification)); head.appendChild(el("span", "tag", L.round.toLowerCase() + " " + (rat.round ?? "?"))); card.appendChild(head);
         if (rat.statement) { const s = el("div", "stmt2"); s.append("“" + rat.statement + "”"); card.appendChild(s); }
         const votes = el("div", "votes");
-        (rat.votes || []).forEach((v) => { const o = v.output || {}; const row = el("div", "vote " + (o.ratifies ? "y" : "n")); row.appendChild(el("span", "mk", o.ratifies ? "✓" : "✗")); const tx = el("span"); tx.appendChild(el("b", null, v.name)); tx.append(o.ratifies ? " " + L.ratifies : (o.objection ? " — " + o.objection : " " + L.objects)); row.appendChild(tx); votes.appendChild(row); });
+        (rat.votes || []).forEach((v) => { const o = v.output || {}; if (v.thinking) { const rw = el("div", "vote"); rw.appendChild(el("span", "ld")); const t2 = el("span"); t2.appendChild(el("b", null, v.name)); t2.append(" " + L.thinking); rw.appendChild(t2); votes.appendChild(rw); return; } const row = el("div", "vote " + (o.ratifies ? "y" : "n")); row.appendChild(el("span", "mk", o.ratifies ? "✓" : "✗")); const tx = el("span"); tx.appendChild(el("b", null, v.name)); tx.append(o.ratifies ? " " + L.ratifies : (o.objection ? " — " + o.objection : " " + L.objects)); row.appendChild(tx); votes.appendChild(row); });
         card.appendChild(votes); wrap.appendChild(card); return wrap;
       }
 
