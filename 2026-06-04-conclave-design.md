@@ -562,4 +562,21 @@ Flujo (flag `--live`): el bucle principal escribe un **meta sidecar** (`question
 
 **v1.2.2 — estado «En proceso»:** mientras el cónclave no ha concluido (el auditor, último paso, aún no resolvió) el estado es **«En proceso»** —color teal propio (`b-prog`), «ronda N · en curso», y «El cónclave sigue deliberando…» en el panel del veredicto— en vez del engañoso «Sin consenso» que se mostraba desde el inicio. Al resolver el auditor pasa al estado final real (consenso pleno / mayoría con disidencia / sin consenso).
 
+---
+
+## 19. v1.3 — Rediseño visual del visualizador (oficio anti-IA, 2026-06-09)
+
+Elevación estética manteniendo la paleta oro-oscuro a luz de vela, para que «no parezca hecho por IA»:
+
+- **Tipografía distintiva incrustada** (base64, offline): **Cinzel** (capital romana inscripcional) para título / nombres / sellos / cabeceras, y **EB Garamond** (roman + itálica) para toda la prosa (pregunta, posturas, objeciones, veredicto). Sustituyen los *stacks* de sistema que degradaban a Georgia/Times en la mayoría de máquinas. Cinzel solo en mayúsculas cortas (no en prosa).
+- **Título en oro batido** (degradado `--gilt` con `background-clip:text` + relieve) y **crest** SVG bespoke (sol radiante de 12 rayos con centro anillado) en lugar de los emojis «✦ ✦ ✦».
+- **Capitular iluminada** (drop cap en oro) en el statement del veredicto; **marco doble cincelado** del veredicto (borde + hairline interior vía `::before`) y filo dorado interno en las cards.
+- **Atmósfera** refinada: luz de vela en capas + viñeta más profunda, en vez del *blob* de glow genérico.
+- **Metadata aireada**: las pastillas pasan de cajas uniformes a inscripción tenue en versalita (menos «chip soup»); los badges de resultado destacan. Más aire en el masthead.
+- `@media print` reajustado para el texto en degradado (se imprime en oro sólido, no transparente).
+
+**Fix de la vista en vivo:** el badge superior-derecho deja de poner «EN VIVO» al concluir el cónclave — pasa a «✦ cónclave cerrado» (lee `_live.concluded`).
+
+Validado: render real capturado en headless (el hero — título, crest, consejo, cards, atmósfera). El visor pesa ~198 KB (autocontenido, con las fuentes incrustadas).
+
 **Caveat declarado:** depende del **formato interno** del `journal.jsonl` (no es API pública de Claude Code → una actualización podría romperlo); los nombres se mapean por orden de lanzamiento (correcto con el bucle actual). Es el único punto frágil; el resto del skill no depende de ello.

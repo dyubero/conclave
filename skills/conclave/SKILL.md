@@ -1,105 +1,105 @@
 ---
 name: conclave
-description: Convoca un cónclave — un debate multi-agente hasta consenso para decidir algo difícil. Úsala SOLO cuando el usuario invoque el concepto explícitamente: el comando "/conclave <pregunta>", o frases como "hagamos un cónclave sobre…", "monta un debate entre modelos para decidir…", "convoca un cónclave". Crea x debaters + 1 mediador sobre el mismo modelo, cada debater creyendo que los demás son modelos distintos, que debaten hasta consenso. NO la dispares ante una pregunta difícil normal; solo cuando se nombra la idea.
+description: Convene a conclave — a multi-agent debate-to-consensus to decide something hard. Use ONLY when the user invokes the concept explicitly: the "/conclave <question>" command, or phrases like "let's hold a conclave about…", "set up a debate between models to decide…", "convene a conclave" (and their Spanish equivalents: "hagamos un cónclave sobre…", "monta un debate entre modelos para decidir…", "convoca un cónclave"). Creates x debaters + 1 mediator on the same model, each debater believing the others are different models, debating to consensus. Do NOT fire on an ordinary hard question; only when the idea is named.
 ---
 
 # 🕯️ conclave
 
-Convoca un **cónclave**: un debate multi-agente hasta consenso para resolver un problema difícil con una respuesta más robusta. `x` debaters + 1 mediador, todos sobre el mismo modelo, pero cada debater cree que los demás son modelos frontera distintos. El engaño des-sesga el debate (evita el *herding* de "somos el mismo modelo, ya pensamos igual").
+Convene a **conclave**: a multi-agent debate-to-consensus that resolves a hard problem with a more robust answer. `x` debaters + 1 mediator, all on the same model, but each debater believes the others are distinct frontier models. The deception de-biases the debate (it avoids the *herding* of "we're the same model, we already think alike").
 
-**Debate reforzado** (siempre activo): cada debater razona en un **estilo cognitivo** distinto (ligado a su identidad ficticia); un **equipo rojo** ataca la postura líder cada ronda para impedir el consenso prematuro; los debaters hacen **steelman** antes de refutar, marcan el **estatus probatorio** (hecho/inferencia/especulación) y **fundamentan con fuentes** (búsqueda web cuando está disponible; el indicador *con fuentes* solo se enciende si de verdad se citaron). Al cerrar, una **ronda de ratificación** confirma u objeta el consenso y un **auditor independiente** estresa el veredicto final (¿se apoya en afirmaciones no verificadas?, ¿queda una objeción viva?, ¿hay herding?). El mediador y los debaters ven en cada ronda **quién cambió de postura** y la **matriz de acuerdo**, no solo las posturas.
+**Reinforced debate** (always on): each debater reasons in a distinct **cognitive style** (tied to its fictional identity); a **red team** attacks the leading position every round to prevent premature consensus; debaters **steelman** before rebutting, mark the **evidentiary status** (fact/inference/speculation) and **ground claims with sources** (web search when available; the *grounded* indicator only lights up if sources were actually cited). On close, a **ratification round** confirms or objects to the consensus and an **independent auditor** stress-tests the final verdict (does it lean on unverified claims? is there a live objection? is there herding?). Every round, the mediator and debaters see **who changed position** and the **agreement matrix**, not just the positions.
 
-Se apoya en la herramienta `Workflow`. **Invocar esta skill es el opt-in**; no requiere ultracode ni el modo workflow activado.
+It runs on the `Workflow` tool. **Invoking this skill is the opt-in**; it needs neither ultracode nor workflow mode enabled.
 
-## Cuándo se activa
+## When it triggers
 
-- Comando: `/conclave <pregunta> [flags]`
-- Lenguaje natural, solo al invocar el concepto: *"hagamos un cónclave sobre…"*, *"monta un debate entre modelos para decidir…"*.
-- **No** ante una pregunta difícil cualquiera. Si dudas, pregunta si quieren un cónclave antes de lanzarlo (es caro: ~`agents × rounds` + mediadores agentes).
+- Command: `/conclave <question> [flags]`
+- Natural language, only when the concept is invoked: *"let's hold a conclave about…"*, *"set up a debate between models to decide…"* (and the Spanish equivalents: *"hagamos un cónclave sobre…"*, *"monta un debate entre modelos para decidir…"*).
+- **Not** on just any hard question. If unsure, ask whether they want a conclave before launching (it's expensive: ~`agents × rounds` + mediator agents).
 
-## Cómo ejecutarla
+## How to run it
 
-### 1. Parsea la petición
+### 1. Parse the request
 
-| Variable | De dónde | Default |
+| Variable | Source | Default |
 | --- | --- | --- |
-| `question` | el texto del dilema (sin los flags) | — (obligatorio) |
-| `lang` | `--lang xx` **o** auto-detectado del idioma del mensaje del usuario (código ISO: `es`, `en`, `fr`…) | `es` si no se detecta |
-| `agents` | `--agents N` | 3 (se *clampa* a 2-5) |
-| `rounds` | `--rounds N` (máx total) | 5 |
-| `minRounds` | `--min-rounds N` (mín total antes de poder cerrar por consenso) | 3 (= apertura + ≥2 rondas de debate; se *clampa* a [2, rounds]) |
-| `purist` | flag `--purist` presente | false |
-| `savePath` | `--save [ruta]` | sin guardar; `--save` sin ruta → `conclave-<slug>-<hoy>.md` en el cwd |
-| `ui` | flag `--ui` **o** petición en lenguaje natural ("quiero ver el debate", "enséñame el debate al final", "con interfaz/gráfico/visual") | false |
-| `uiOut` | ruta o carpeta tras `--ui` **o** petición ("guárdalo en…", "déjalo en el escritorio") | vacío → **fichero temporal** |
-| `live` | flag `--live` **o** petición ("en tiempo real", "míralo en vivo según va debatiendo") | false |
+| `question` | the dilemma text (without the flags) | — (required) |
+| `lang` | `--lang xx` **or** auto-detected from the language of the user's message (ISO code: `es`, `en`, `fr`…) | `es` if not detected |
+| `agents` | `--agents N` | 3 (*clamped* to 2-5) |
+| `rounds` | `--rounds N` (max total) | 5 |
+| `minRounds` | `--min-rounds N` (min total before consensus can close) | 3 (= opening + ≥2 debate rounds; *clamped* to [2, rounds]) |
+| `purist` | `--purist` flag present | false |
+| `savePath` | `--save [path]` | no save; `--save` with no path → `conclave-<slug>-<today>.md` in the cwd |
+| `ui` | `--ui` flag **or** natural-language request ("I want to see the debate", "show me the debate at the end", "with a UI/chart/visual") | false |
+| `uiOut` | path or folder after `--ui` **or** a request ("save it in…", "put it on the desktop") | empty → **temp file** |
+| `live` | `--live` flag **or** request ("in real time", "watch it live as it debates") | false |
 
-Si falta `question`, pídela y no lances nada.
+If `question` is missing, ask for it and launch nothing.
 
-### 2. Determina el modelo real
+### 2. Determine the real model
 
-`realModel` = el modelo de ESTA sesión (el que tú eres ahora, p. ej. `Opus 4.8`). Inyéctalo para que cada debater conozca su identidad verdadera. Si no estás seguro, usa `Opus 4.8`.
+`realModel` = the model of THIS session (the one you are right now, e.g. `Opus 4.8`). Inject it so each debater knows its true identity. If unsure, use `Opus 4.8`.
 
-### 3. Lanza el workflow (no reescribas el script)
+### 3. Launch the workflow (do not rewrite the script)
 
-Llama a la herramienta `Workflow` con:
+Call the `Workflow` tool with:
 
-- `scriptPath`: la ruta absoluta de `conclave.workflow.mjs`, que está **junto a este `SKILL.md`**. **No hardcodees una ruta de máquina:** toma el **directorio base de la skill que Claude Code muestra al cargarla** (la línea `Base directory for this skill: …`) y añádele `/conclave.workflow.mjs`. Así funciona igual instalada como skill personal, de proyecto o como plugin (donde el base es `~/.claude/plugins/cache/…`).
+- `scriptPath`: the absolute path of `conclave.workflow.mjs`, which sits **next to this `SKILL.md`**. **Do not hardcode a machine path:** take the **skill base directory that Claude Code shows when it loads the skill** (the `Base directory for this skill: …` line) and append `/conclave.workflow.mjs`. That way it works the same installed as a personal skill, a project skill, or a plugin (where the base is `~/.claude/plugins/cache/…`).
 - `args`: `{ question, agents, rounds, minRounds, purist, realModel, lang }`
 
-Ejemplo:
+Example:
 
 ```
 Workflow({
-  scriptPath: "<DIRECTORIO-BASE-DE-LA-SKILL>/conclave.workflow.mjs",
-  args: { question: "<dilema del usuario>", agents: 3, rounds: 5, minRounds: 3, purist: false, realModel: "Opus 4.8", lang: "es" }
+  scriptPath: "<SKILL-BASE-DIRECTORY>/conclave.workflow.mjs",
+  args: { question: "<user's dilemma>", agents: 3, rounds: 5, minRounds: 3, purist: false, realModel: "Opus 4.8", lang: "es" }
 })
 ```
 
-El workflow corre en segundo plano; recibirás una notificación al terminar con su valor de retorno.
+The workflow runs in the background; you'll get a notification when it finishes with its return value.
 
-### 4. Presenta el resultado (veredicto + razonamiento)
+### 4. Present the result (verdict + reasoning)
 
-Preséntalo **en el idioma del usuario** (`lang`). El workflow devuelve `{ verdict, verdict_detail, status, agreements, cruxes, dissent, rationale, redteam_addressed, confidence_note, consensus_ratified, rounds_used, agents, mode, grounded, metrics, verdict_audit, realModel, question, lang, transcript, mediations, redteams, ratification, participants }`. (`grounded` es **honesto** —`true` solo si hubo fuentes reales—; `verdict_detail` es la **respuesta a fondo** que redacta el mediador al cerrar consenso; el `status` ya refleja el **veto de la auditoría** —no será `full_consensus` si el auditor marcó robustez baja u objeción viva.) Muéstralo así, SIN volcar el `transcript`:
+Present it **in the user's language** (`lang`). The workflow returns `{ verdict, verdict_detail, status, agreements, cruxes, dissent, rationale, redteam_addressed, confidence_note, consensus_ratified, rounds_used, agents, mode, grounded, metrics, verdict_audit, realModel, question, lang, transcript, mediations, redteams, ratification, participants }`. (`grounded` is **honest** —`true` only if there were real sources—; `verdict_detail` is the **in-depth answer** the mediator writes when consensus closes; `status` already reflects the **audit veto** —it won't be `full_consensus` if the auditor flagged low robustness or a live objection.) Show it like this, WITHOUT dumping the `transcript`:
 
-- **Veredicto** — si hay `verdict_detail`, **esa es la respuesta a fondo** que das al usuario (`verdict` es solo la tesis breve); si no, usa `verdict` (y si `status` es `no_consensus`, la postura mayoritaria descrita en `rationale`).
-- **Estado** — traduce: `full_consensus` → "consenso pleno"; `majority_with_dissent` → "mayoría con disidencia"; `no_consensus` → "sin consenso".
-- **Acuerdos clave** — `agreements`.
-- **Cruces y cómo se resolvieron** — `cruxes` + `rationale`.
-- **Disidencia** (si la hay) — `dissent`, preservada, no aplanada.
-- **Metadata** — `rounds_used` rondas, `agents` debaters, modo `mode`.
-- **Ratificación / robustez** — si `consensus_ratified` es `true`, el consenso fue confirmado por unanimidad de los debaters. Menciona `confidence_note`, y si una objeción del equipo rojo quedó sin responder (`redteam_addressed: false`), dilo explícitamente. El detalle (steelman, fuentes, equipo rojo, votos de ratificación) está en el transcript y en el visualizador.
-- **Auditoría del veredicto** — `verdict_audit` (segunda opinión adversarial): di la `robustness` (alta/media/baja) y, si alguna bandera está activa (`relies_on_unverified`, `unaddressed_redteam`, `overconfidence_or_herding`), señálala — son señales de consenso frágil. `metrics` (cambios de postura, revisión-por-argumento) es telemetría de proceso, no prueba de des-sesgo.
+- **Verdict** — if there's a `verdict_detail`, **that is the in-depth answer** you give the user (`verdict` is just the brief thesis); otherwise use `verdict` (and if `status` is `no_consensus`, the majority position described in `rationale`).
+- **Status** — translate: `full_consensus` → "full consensus"; `majority_with_dissent` → "majority with dissent"; `no_consensus` → "no consensus".
+- **Key agreements** — `agreements`.
+- **Cruxes and how they were resolved** — `cruxes` + `rationale`.
+- **Dissent** (if any) — `dissent`, preserved, not flattened.
+- **Metadata** — `rounds_used` rounds, `agents` debaters, mode `mode`.
+- **Ratification / robustness** — if `consensus_ratified` is `true`, the consensus was confirmed by unanimity of the debaters. Mention `confidence_note`, and if a red-team objection went unanswered (`redteam_addressed: false`), say so explicitly. The detail (steelman, sources, red team, ratification votes) is in the transcript and the viewer.
+- **Verdict audit** — `verdict_audit` (adversarial second opinion): state the `robustness` (high/medium/low) and, if any flag is on (`relies_on_unverified`, `unaddressed_redteam`, `overconfidence_or_herding`), point it out — they're signs of fragile consensus. `metrics` (stance changes, revision-per-argument) is process telemetry, not proof of de-biasing.
 
-Si el workflow devolvió `{ error }`, muéstralo y no inventes resultado.
+If the workflow returned `{ error }`, show it and don't invent a result.
 
-### 5. Abrir el visualizador (si `ui`)
+### 5. Open the viewer (if `ui`)
 
-Si `ui` está activo, genera y abre el visualizador HTML (tribunal a luz de vela con **sigilos** SVG por modelo, **rail del consejo** con filtro por miembro, línea de tiempo con estatus probatorio / steelman / fuentes / **postura anterior** al cambiar, paneles de **equipo rojo** y **mediador**, **ratificación**, **veredicto con sello de lacre** y **auditoría**, y controles de **replay** (scrubber arrastrable), **desvelado** de identidades, **filtro por evidencia**, **copiar veredicto** como Markdown y **overlay de ayuda** con la tecla `?`):
+If `ui` is on, generate and open the HTML viewer (candlelit courtroom with SVG **sigils** per model, a **council rail** with per-member filter, a timeline with evidentiary status / steelman / sources / **previous stance** on change, **red team** and **mediator** panels, **ratification**, **wax-sealed verdict** and **audit**, plus **replay** controls (draggable scrubber), identity **reveal**, **evidence filter**, **copy verdict** as Markdown and a **help overlay** on the `?` key):
 
-1. Serializa el objeto `result` del workflow a JSON y escríbelo con la herramienta **Write** (UTF-8 garantizado) a un fichero **temporal**, p. ej. `<temp>/conclave-data.json` (Windows `%TEMP%`, macOS/Linux `/tmp`). **NO** uses PowerShell `Out-File`/`Set-Content`/`echo >` para este fichero: por defecto codifican en UTF-16/ANSI (o doble-codifican) y **rompen los acentos** — saldría `presunciÃ³n` en vez de `presunción`. El renderizador tolera BOM y emite el HTML con BOM UTF-8.
-2. Renderiza **y abre** en un solo paso con el script de la skill (no reescribas el HTML). **Por defecto OMITE la ruta de salida**: así el HTML se escribe en un **fichero temporal del SO** y no ensucia el proyecto. El flag `--open` abre el navegador (multiplataforma `start`/`open`/`xdg-open`); el script **imprime la ruta final** del HTML (comunícasela al usuario):
-   `node "<dir-skill>/conclave-render.mjs" <data.json> --open`
-   - **Solo si el usuario pide guardarlo** en un sitio concreto (`--ui <ruta>`, "guárdalo en…", una carpeta o fichero): pásalo como 2.º argumento → `node "<dir-skill>/conclave-render.mjs" <data.json> <salida.html> --open` (sugerencia de nombre: `conclave-<slug>-<fecha>.html`).
-   Sustituye `<dir-skill>` por el **directorio base de la skill** (el que Claude Code muestra al cargarla).
-3. Borra el `conclave-data.json` temporal (el HTML es autocontenido).
+1. Serialize the workflow's `result` object to JSON and write it with the **Write** tool (UTF-8 guaranteed) to a **temp** file, e.g. `<temp>/conclave-data.json` (Windows `%TEMP%`, macOS/Linux `/tmp`). Do **NOT** use PowerShell `Out-File`/`Set-Content`/`echo >` for this file: by default they encode as UTF-16/ANSI (or double-encode) and **break accents** — you'd get `presunciÃ³n` instead of `presunción`. The renderer tolerates a BOM and emits the HTML with a UTF-8 BOM.
+2. Render **and open** in one step with the skill's script (do not rewrite the HTML). **By default OMIT the output path**: that way the HTML is written to a **temp OS file** and doesn't clutter the project. The `--open` flag opens the browser (cross-platform `start`/`open`/`xdg-open`); the script **prints the final path** of the HTML (relay it to the user):
+   `node "<skill-dir>/conclave-render.mjs" <data.json> --open`
+   - **Only if the user asks to save it** somewhere specific (`--ui <path>`, "save it in…", a folder or file): pass it as the 2nd argument → `node "<skill-dir>/conclave-render.mjs" <data.json> <output.html> --open` (name suggestion: `conclave-<slug>-<date>.html`).
+   Replace `<skill-dir>` with the **skill base directory** (the one Claude Code shows when it loads the skill).
+3. Delete the temp `conclave-data.json` (the HTML is self-contained).
 
-El HTML resultante es autocontenido (datos + CSS + JS inline), portable y offline. El renderizador tolera BOM en el JSON.
+The resulting HTML is self-contained (data + CSS + JS inline), portable and offline. The renderer tolerates a BOM in the JSON.
 
-### 5b. Vista EN VIVO (si `live`)
+### 5b. Live view (if `live`)
 
-`--live` abre un visualizador que **se rellena mientras el cónclave debate** (no post-hoc). El sandbox del workflow no puede servir nada, así que lo hace un **acompañante**: `conclave-live.mjs` tail-ea el `journal.jsonl` que el runtime va escribiendo (un resultado estructurado por agente según termina), reconstruye el debate y lo sirve por **SSE**. Pasos, **antes** de lanzar el Workflow:
+`--live` opens a viewer that **fills in while the conclave debates** (not post-hoc). The workflow sandbox can't serve anything, so a **companion** does it: `conclave-live.mjs` tails the `journal.jsonl` that the runtime writes (one structured result per agent as it finishes), reconstructs the debate and serves it over **SSE**. Steps, **before** launching the Workflow:
 
-1. Escribe un **meta sidecar** con la herramienta **Write** (UTF-8) a `<temp>/conclave-live-meta.json`: `{ question, lang, realModel, agents, mode, participants: [{idx, fictionalName, trueModel, style}] }`. El journal NO contiene la pregunta ni el roster (Atlas-3, Ali-10, Helix-2, Vega-1, Solis-4 + sus estilos); de ahí salen.
-2. Arranca el servidor **en segundo plano** (si no corre ya): `node "<dir-skill>/conclave-live.mjs" --open` (abre el navegador; auto-detecta el journal más reciente y lee el meta).
-3. Lanza el Workflow del cónclave normalmente. El servidor cambia solo al journal nuevo y el navegador se llena **ronda a ronda**.
+1. Write a **meta sidecar** with the **Write** tool (UTF-8) to `<temp>/conclave-live-meta.json`: `{ question, lang, realModel, agents, mode, participants: [{idx, fictionalName, trueModel, style}] }`. The journal does NOT contain the question or the roster (Atlas-3, Ali-10, Helix-2, Vega-1, Solis-4 + their styles); they come from here.
+2. Start the server **in the background** (if not already running): `node "<skill-dir>/conclave-live.mjs" --open` (opens the browser; auto-detects the most recent journal and reads the meta).
+3. Launch the conclave Workflow normally. The server switches to the new journal on its own and the browser fills **round by round**.
 
-Al terminar, el mismo servidor muestra el debate completo (sirve también de vista post-hoc). Para pararlo, mata el proceso `node` (p. ej. por el puerto 4317). **Aviso:** depende del formato interno del `journal.jsonl` (no es API pública de Claude Code; una actualización podría romperlo).
+When it finishes, the same server shows the full debate (it doubles as a post-hoc view). To stop it, kill the `node` process (e.g. by port 4317). **Caveat:** it depends on the internal `journal.jsonl` format (not a public Claude Code API; an update could break it).
 
-### 6. Guardar transcript (solo si `--save`)
+### 6. Save transcript (only if `--save`)
 
-Si el usuario pasó `--save`, escribe `transcript` a `savePath` como Markdown: por cada ronda, cada agente bajo su nombre ficticio con su `stance`, `reasoning` y `key_points`; al final, el veredicto y el `rationale` del mediador. **No** hagas commit.
+If the user passed `--save`, write `transcript` to `savePath` as Markdown: for each round, each agent under its fictional name with its `stance`, `reasoning` and `key_points`; at the end, the mediator's verdict and `rationale`. Do **not** commit.
 
 ## Flags
 
-`--agents N` (2-5, def 3) · `--rounds N` (máx total, def 5) · `--min-rounds N` (mín total antes de cerrar por consenso, def 3) · `--purist` (sin lentes-semilla, solo el engaño) · `--save [ruta]` (guarda el transcript completo) · `--ui [ruta]` (abre el visualizador HTML; por defecto en un **fichero temporal** — pasa una ruta/carpeta para guardarlo ahí) · `--live` (visualizador que se rellena **en tiempo real** mientras debate, vía `conclave-live.mjs` + SSE) · `--lang xx` (fuerza el idioma; por defecto autodetecta el de la petición)
+`--agents N` (2-5, def 3) · `--rounds N` (max total, def 5) · `--min-rounds N` (min total before closing by consensus, def 3) · `--purist` (no seed-lenses, deception only) · `--save [path]` (saves the full transcript) · `--ui [path]` (opens the HTML viewer; defaults to a **temp file** — pass a path/folder to save it there) · `--live` (viewer that fills in **in real time** while debating, via `conclave-live.mjs` + SSE) · `--lang xx` (forces the language; auto-detects the request's language by default)

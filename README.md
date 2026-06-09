@@ -1,42 +1,43 @@
 # 🕯️ conclave
 
-> Un **cónclave** para Claude Code: un debate multi-agente hasta consenso que decide dilemas difíciles con una respuesta más robusta que la de un solo paso.
+> A **conclave** for Claude Code: a multi-agent debate-to-consensus that decides hard dilemmas with a more robust answer than a single pass.
 > *A multi-agent, same-model, identities-disguised debate-to-consensus skill for Claude Code.*
 
-`conclave` crea **x debaters + 1 equipo rojo + 1 mediador**, todos sobre el **mismo modelo** de tu sesión — pero a cada debater se le hace **creer que sus pares son modelos frontera de otros laboratorios**. Ese engaño **des-sesga** el debate: evita el *herding* de «somos el mismo modelo, ya pensamos igual» y trata el acuerdo ajeno como corroboración independiente. Debaten hasta consenso (o disienten con honestidad), y opcionalmente lo ves todo en un **visualizador HTML** de tribunal a luz de vela.
+`conclave` spins up **x debaters + 1 red team + 1 mediator**, all on your session's **same model** — but each debater is made to **believe its peers are frontier models from other labs**. That deception **de-biases** the debate: it breaks the *herding* of "we're the same model, we already think alike" and treats another agent's agreement as independent corroboration. They debate to consensus (or dissent honestly), and you can optionally watch it all unfold in a candlelit-courtroom **HTML viewer**.
 
 ---
 
-## ¿Por qué un engaño?
+## Why a deception?
 
-Como todos los agentes son el mismo modelo, la sola creencia genera divergencia débil. Por eso cada debater razona además en un **estilo cognitivo** fijo (formalista / lateral / empirista / escéptico adversarial / sintetizador). El resultado es un debate con divergencia genuina y convergencia honesta.
+Because every agent is the same model, belief alone produces only weak divergence. So each debater also reasons in a fixed **cognitive style** (formalist / lateral / empiricist / adversarial skeptic / synthesizer). The result is a debate with genuine divergence and honest convergence.
 
-## Características
+## Features
 
-- **Engaño + estilos cognitivos** — divergencia real entre agentes idénticos.
-- **Equipo rojo** que ataca la postura líder cada ronda para frenar el consenso prematuro.
-- **Steelman** obligatorio antes de refutar y **estatus probatorio** por punto (hecho / inferencia / especulación).
-- **Fundamentación con fuentes** (cuando hay búsqueda web disponible; el indicador «con fuentes» es honesto).
-- **Ratificación** final por unanimidad y **auditoría del veredicto** (segunda opinión adversarial: ¿se apoya en lo no verificado?, ¿queda una objeción viva?, ¿hay herding?).
-- **Telemetría del proceso** (cambios de postura, revisión-por-argumento) y **salida honesta** (nunca fuerza un acuerdo falso).
-- **Visualizador HTML** autocontenido y offline (`--ui`): rail del consejo, línea de tiempo, paneles de equipo rojo / mediador / auditoría, veredicto con sello de lacre, replay, desvelado de identidades, filtro por evidencia, copiar veredicto y ayuda.
-- **Bilingüe** (es/en, autodetectado) y multiplataforma.
+- **Deception + cognitive styles** — real divergence between identical agents.
+- **Red team** that attacks the leading position each round to stop premature consensus.
+- **Steelman** required before rebutting, plus **evidentiary status** per point (fact / inference / speculation).
+- **Source grounding** (when web search is available; the "grounded" indicator is honest).
+- Final **ratification** by unanimity and a **verdict audit** (adversarial second opinion: does it lean on the unverified? is there a live objection? is there herding?).
+- **Process telemetry** (stance changes, revision-per-argument) and **honest output** (never forces a false agreement).
+- **HTML viewer**, self-contained and offline (`--ui`): council rail, timeline, red-team / mediator / audit panels, wax-sealed verdict, replay, identity reveal, evidence filter, copy verdict, and help.
+- **Live view** (`--live`): a viewer that fills in **in real time** while the conclave debates.
+- **Bilingual** (en/es, auto-detected) and cross-platform.
 
-## Requisitos
+## Requirements
 
-- **Claude Code** con la herramienta **`Workflow`**.
-- **Node.js** instalado (la skill ejecuta `node` para el visualizador).
+- **Claude Code** with the **`Workflow`** tool.
+- **Node.js** installed (the skill runs `node` for the viewer).
 
-## Instalación (como plugin)
+## Installation (as a plugin)
 
 ```text
 /plugin marketplace add dyubero/conclave
 /plugin install conclave@conclave-marketplace
 ```
 
-> Sustituye `dyubero/conclave` por tu repositorio de GitHub. La primera línea registra este repo como *marketplace*; la segunda instala el plugin.
+> The first line registers this repo as a *marketplace*; the second installs the plugin.
 
-Para un **equipo/proyecto**, en `.claude/settings.json`:
+For a **team/project**, in `.claude/settings.json`:
 
 ```json
 {
@@ -47,43 +48,44 @@ Para un **equipo/proyecto**, en `.claude/settings.json`:
 }
 ```
 
-## Uso
+## Usage
 
 ```text
-/conclave ¿Monorepo o multirepo para un equipo de 5?
-/conclave <pregunta> --ui                 # abre el visualizador al terminar
-/conclave <pregunta> --agents 4 --rounds 5 --ui
+/conclave Monorepo or multirepo for a team of 5?
+/conclave <question> --ui                 # opens the viewer when it finishes
+/conclave <question> --agents 4 --rounds 5 --ui
 ```
 
-También se activa en **lenguaje natural** al invocar el concepto: *«hagamos un cónclave sobre…»*, *«monta un debate entre modelos para decidir…»*. **No** salta ante una pregunta difícil cualquiera — solo cuando se nombra la idea (es caro: ~`agents × rounds` agentes).
+It also triggers in **natural language** when you invoke the concept: *"let's hold a conclave about…"*, *"set up a debate between models to decide…"* (and the Spanish equivalents). It does **not** fire on just any hard question — only when the idea is named (it's expensive: ~`agents × rounds` agents).
 
 ### Flags
 
-| Flag | Def | Efecto |
+| Flag | Default | Effect |
 | --- | --- | --- |
-| `--agents N` | 3 | nº de debaters (2-5) |
-| `--rounds N` | 5 | tope máximo de rondas |
-| `--min-rounds N` | 3 | mínimo antes de poder cerrar por consenso |
-| `--purist` | off | sin estilos cognitivos (solo el engaño — es el experimento) |
-| `--save [ruta]` | off | guarda el transcript completo en Markdown |
-| `--ui` | off | abre el visualizador HTML del debate |
-| `--lang xx` | auto | fuerza el idioma (por defecto autodetecta) |
+| `--agents N` | 3 | number of debaters (2-5) |
+| `--rounds N` | 5 | maximum round cap |
+| `--min-rounds N` | 3 | minimum before consensus can close |
+| `--purist` | off | no cognitive styles (deception only — the experiment) |
+| `--save [path]` | off | saves the full transcript as Markdown |
+| `--ui [path]` | off | opens the HTML viewer (defaults to a temp file) |
+| `--live` | off | viewer that fills in **in real time** while debating |
+| `--lang xx` | auto | forces the language (auto-detects by default) |
 
-## Cómo funciona
+## How it works
 
-Cada ronda: `parallel(debaters) → equipo rojo → mediador`. El mediador distingue consenso **genuino** del de fachada y nunca cierra antes de `min-rounds`. Al declararse consenso, una ronda de **ratificación** lo confirma u objeta; después, un **auditor** independiente estresa el veredicto. Los `agent()` son *one-shot*; el script carga el transcript entre rondas, renderizado **por-agente** para que el engaño sea simétrico (cada uno se cree el único de su modelo).
+Each round: `parallel(debaters) → red team → mediator`. The mediator distinguishes **genuine** consensus from a facade and never closes before `min-rounds`. When consensus is declared, a **ratification** round confirms or objects; then an independent **auditor** stress-tests the verdict. The `agent()` calls are *one-shot*; the script feeds the transcript between rounds, rendered **per-agent** so the deception stays symmetric (each one believes it's the only instance of its model).
 
-## Estructura del repo
+## Repo structure
 
 ```text
 .claude-plugin/   plugin.json · marketplace.json
-skills/conclave/  SKILL.md · conclave.workflow.mjs · conclave-render.mjs · conclave.viewer.html
-2026-06-04-conclave-design.md   spec vivo (§1-16)
-2026-06-04-conclave-plan.md     plan de implementación (histórico, v1)
+skills/conclave/  SKILL.md · conclave.workflow.mjs · conclave-render.mjs · conclave-live.mjs · conclave.viewer.html
+2026-06-04-conclave-design.md   living spec (§1-16)
+2026-06-04-conclave-plan.md     implementation plan (historical, v1)
 ```
 
-El **spec completo** está en [`2026-06-04-conclave-design.md`](./2026-06-04-conclave-design.md).
+The **full spec** lives in [`2026-06-04-conclave-design.md`](./2026-06-04-conclave-design.md).
 
-## Licencia
+## License
 
-MIT — ver [LICENSE](./LICENSE).
+MIT — see [LICENSE](./LICENSE).
